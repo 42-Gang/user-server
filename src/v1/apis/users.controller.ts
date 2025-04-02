@@ -6,6 +6,7 @@ import {
   editNicknameInputSchema,
   getUserParamsSchema,
   getUserResponseSchema,
+  searchUserParamsSchema,
 } from './users.schema.js';
 
 export default class UsersController {
@@ -27,6 +28,12 @@ export default class UsersController {
   editNickname = async (request: FastifyRequest, reply: FastifyReply) => {
     const body = editNicknameInputSchema.parse(request.body);
     const result = await this.usersService.editNickname(request.userId, body);
+    reply.code(200).send(result);
+  };
+
+  searchUser = async (request: FastifyRequest, reply: FastifyReply) => {
+    const params = searchUserParamsSchema.parse(request.params);
+    const result = await this.usersService.searchUser(params.nickname);
     reply.code(200).send(result);
   };
 }

@@ -54,3 +54,11 @@ export const editNicknameInputSchema = userSchema.pick({
 });
 
 export const editNicknameResponseSchema = createResponseSchema(exceptedSensitiveFields);
+
+// searchUser
+
+export const searchUserParamsSchema = userSchema.pick({
+  nickname: true,
+});
+
+export const searchUserResponseSchema = createResponseSchema(z.array(exceptedSensitiveFields));

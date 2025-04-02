@@ -27,4 +27,14 @@ export default class UserRepositoryPrisma implements UserRepositoryInterface {
   update(id: number, data: Prisma.UserUpdateInput): Promise<User> {
     return this.prisma.user.update({ where: { id }, data });
   }
+
+  findByNicknameStartsWith(nickname: string): Promise<User[]> {
+    return this.prisma.user.findMany({
+      where: {
+        nickname: {
+          startsWith: nickname,
+        },
+      },
+    });
+  }
 }

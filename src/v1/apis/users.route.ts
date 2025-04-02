@@ -9,6 +9,8 @@ import {
   editNicknameResponseSchema,
   getUserParamsSchema,
   getUserResponseSchema,
+  searchUserParamsSchema,
+  searchUserResponseSchema,
 } from './users.schema.js';
 
 export default async function usersRoutes(fastify: FastifyInstance) {
@@ -54,6 +56,21 @@ export default async function usersRoutes(fastify: FastifyInstance) {
           body: editNicknameInputSchema,
           response: {
             200: editNicknameResponseSchema,
+          },
+        },
+        auth: true,
+      },
+    },
+    {
+      method: 'GET',
+      url: '/search/:nickname',
+      handler: usersController.searchUser,
+      options: {
+        schema: {
+          tags: ['users'],
+          params: searchUserParamsSchema,
+          response: {
+            200: searchUserResponseSchema,
           },
         },
         auth: true,

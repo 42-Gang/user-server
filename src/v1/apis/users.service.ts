@@ -6,6 +6,7 @@ import {
   editNicknameInputSchema,
   editNicknameResponseSchema,
   getUserResponseSchema,
+  searchUserResponseSchema,
 } from './users.schema.js';
 import { STATUS } from '../common/constants/status.js';
 import UserRepositoryInterface from '../storage/database/interfaces/user.repository.interface.js';
@@ -69,6 +70,15 @@ export default class UsersService {
     return {
       status: STATUS.SUCCESS,
       data: user,
+    };
+  }
+
+  async searchUser(nickname: string): Promise<z.infer<typeof searchUserResponseSchema>> {
+    const users = await this.userRepository.findByNicknameStartsWith(nickname);
+
+    return {
+      status: STATUS.SUCCESS,
+      data: users,
     };
   }
 }
