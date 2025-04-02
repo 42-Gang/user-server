@@ -9,6 +9,10 @@ import {
   editNicknameResponseSchema,
 } from './schemas/editNickname.schema.js';
 import { searchUserParamsSchema, searchUserResponseSchema } from './schemas/searchUser.schema.js';
+import {
+  authenticateUserInputSchema,
+  authenticateUserResponseSchema,
+} from './schemas/authenticateUser.schema.js';
 
 export default async function usersRoutes(fastify: FastifyInstance) {
   const usersController: UsersController = fastify.diContainer.resolve('usersController');
@@ -23,6 +27,21 @@ export default async function usersRoutes(fastify: FastifyInstance) {
           body: createUserInputSchema,
           response: {
             201: createUserResponseSchema,
+          },
+        },
+        auth: false,
+      },
+    },
+    {
+      method: 'POST',
+      url: '/authenticate',
+      handler: usersController.authenticateUser,
+      options: {
+        schema: {
+          tags: ['users'],
+          body: authenticateUserInputSchema,
+          response: {
+            200: authenticateUserResponseSchema,
           },
         },
         auth: false,

@@ -1,16 +1,23 @@
-import { ConflictException, NotFoundException } from '../common/exceptions/core.error.js';
-import { z } from 'zod';
 import {
-  createUserInputSchema,
-  createUserResponseSchema,
-  editNicknameInputSchema,
-  editNicknameResponseSchema,
-  getUserResponseSchema,
-  searchUserResponseSchema,
-} from './schemas/users.schema.js';
+  ConflictException,
+  NotFoundException,
+  UnAuthorizedException,
+} from '../common/exceptions/core.error.js';
+import { z } from 'zod';
 import { STATUS } from '../common/constants/status.js';
 import UserRepositoryInterface from '../storage/database/interfaces/user.repository.interface.js';
 import bcrypt from 'bcrypt';
+import { createUserInputSchema, createUserResponseSchema } from './schemas/createUser.schema.js';
+import { getUserResponseSchema } from './schemas/getUser.schema.js';
+import {
+  editNicknameInputSchema,
+  editNicknameResponseSchema,
+} from './schemas/editNickname.schema.js';
+import { searchUserResponseSchema } from './schemas/searchUser.schema.js';
+import {
+  authenticateUserInputSchema,
+  authenticateUserResponseSchema,
+} from './schemas/authenticateUser.schema.js';
 
 export default class UsersService {
   constructor(
@@ -39,6 +46,26 @@ export default class UsersService {
     return {
       status: STATUS.SUCCESS,
       data: user,
+    };
+  }
+
+  async authenticateUser(
+    body: z.infer<typeof authenticateUserInputSchema>,
+  ): Promise<z.infer<typeof authenticateUserResponseSchema>> {
+    const user = await this.userRepository.findByEmail(body.email);
+
+    if (!user || user.password_hash === null) {
+      throw new UnAuthorizedException('이메일 혹은 비밀번호를 잘못 입력하셨습니다.');
+    }
+
+    const passwordValidation = await this.crypt.compare(body.password, user.password_hash);
+    if (!passwordValidation) {
+      throw new UnAuthorizedException('이메일 혹은 비밀번호를 잘못 입력하셨습니다.');
+    }
+
+    return {
+      status: STATUS.SUCCESS,
+      message: '로그인 성공',
     };
   }
 

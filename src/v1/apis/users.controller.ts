@@ -5,6 +5,7 @@ import { createUserInputSchema } from './schemas/createUser.schema.js';
 import { getUserParamsSchema, getUserResponseSchema } from './schemas/getUser.schema.js';
 import { editNicknameInputSchema } from './schemas/editNickname.schema.js';
 import { searchUserParamsSchema } from './schemas/searchUser.schema.js';
+import { authenticateUserInputSchema } from './schemas/authenticateUser.schema.js';
 
 export default class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -13,6 +14,12 @@ export default class UsersController {
     const body = createUserInputSchema.parse(request.body);
     const result = await this.usersService.createUser(body);
     reply.code(201).send(result);
+  };
+
+  authenticateUser = async (request: FastifyRequest, reply: FastifyReply) => {
+    const body = authenticateUserInputSchema.parse(request.body);
+    const result = await this.usersService.authenticateUser(body);
+    reply.code(200).send(result);
   };
 
   getUser = async (request: FastifyRequest, reply: FastifyReply) => {
