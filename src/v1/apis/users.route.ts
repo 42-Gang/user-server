@@ -10,7 +10,7 @@ export default async function usersRoutes(fastify: FastifyInstance) {
     {
       method: 'GET',
       url: '/:id',
-      handler: usersController.findUser,
+      handler: usersController.getUser,
       options: {
         schema: {
           tags: ['users'],

@@ -1,7 +1,7 @@
 import { createResponseSchema } from '../common/schema/core.schema.js';
 import { z } from 'zod';
 
-export const FindUserResponseSchema = createResponseSchema(
+export const getUserResponseSchema = createResponseSchema(
   z.object({
     id: z.number(),
     nickname: z.string(),

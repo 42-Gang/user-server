@@ -1,6 +1,6 @@
 import { NotFoundException } from '../common/exceptions/core.error.js';
 import { z } from 'zod';
-import { FindUserResponseSchema } from './users.schema.js';
+import { getUserResponseSchema } from './users.schema.js';
 import { STATUS } from '../common/constants/status.js';
 import UserRepositoryInterface from '../storage/database/interfaces/user.repository.interface.js';
 import { UserCacheInterface } from '../storage/cache/interfaces/user.cache.interface.js';
@@ -22,7 +22,7 @@ export default class UsersService {
     };
   }
 
-  async findUser(id: number): Promise<z.infer<typeof FindUserResponseSchema>> {
+  async getUser(id: number): Promise<z.infer<typeof getUserResponseSchema>> {
     const cachedUser = await this.userCacheRepository.getUserById(id);
     if (cachedUser) {
       return {
