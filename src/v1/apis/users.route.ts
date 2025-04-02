@@ -24,6 +24,7 @@ export default async function usersRoutes(fastify: FastifyInstance) {
       options: {
         schema: {
           tags: ['users'],
+          description: '회원 등록',
           body: createUserInputSchema,
           response: {
             201: createUserResponseSchema,
@@ -39,6 +40,7 @@ export default async function usersRoutes(fastify: FastifyInstance) {
       options: {
         schema: {
           tags: ['users'],
+          description: 'ID / PW 인증',
           body: authenticateUserInputSchema,
           response: {
             200: authenticateUserResponseSchema,
@@ -54,6 +56,7 @@ export default async function usersRoutes(fastify: FastifyInstance) {
       options: {
         schema: {
           tags: ['users'],
+          description: '유저 정보 조회',
           params: getUserParamsSchema,
           response: {
             200: getUserResponseSchema,
@@ -69,6 +72,7 @@ export default async function usersRoutes(fastify: FastifyInstance) {
       options: {
         schema: {
           tags: ['users'],
+          description: '내 정보 수정',
           body: editNicknameInputSchema,
           response: {
             200: editNicknameResponseSchema,
@@ -84,6 +88,7 @@ export default async function usersRoutes(fastify: FastifyInstance) {
       options: {
         schema: {
           tags: ['users'],
+          description: '유저 검색',
           params: searchUserParamsSchema,
           response: {
             200: searchUserResponseSchema,
