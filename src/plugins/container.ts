@@ -17,7 +17,7 @@ export async function setDiContainer(server: FastifyInstance) {
     logger: asValue(server.log),
     redisClient: asValue(server.redis),
     httpClient: asValue(gotClient),
-    bcrypt: asValue(bcrypt),
+    crypt: asValue(bcrypt),
   });
 
   const NODE_EXTENSION = process.env.NODE_ENV == 'dev' ? 'ts' : 'js';

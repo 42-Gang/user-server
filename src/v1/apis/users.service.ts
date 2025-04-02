@@ -1,4 +1,4 @@
-import { NotFoundException } from '../common/exceptions/core.error.js';
+import { ConflictException, NotFoundException } from '../common/exceptions/core.error.js';
 import { z } from 'zod';
 import {
   createUserInputSchema,
@@ -9,15 +9,26 @@ import {
 } from './users.schema.js';
 import { STATUS } from '../common/constants/status.js';
 import UserRepositoryInterface from '../storage/database/interfaces/user.repository.interface.js';
+import bcrypt from 'bcrypt';
 
 export default class UsersService {
-  constructor(private readonly userRepository: UserRepositoryInterface) {}
+  constructor(
+    private readonly userRepository: UserRepositoryInterface,
+    private readonly crypt: typeof bcrypt,
+  ) {}
 
   async createUser(
     body: z.infer<typeof createUserInputSchema>,
   ): Promise<z.infer<typeof createUserResponseSchema>> {
+    if (await this.userRepository.findByEmail(body.email)) {
+      throw new ConflictException('User already exists');
+    }
+
+    const password_hash = await this.crypt.hash(body.password, 10);
     const user = await this.userRepository.create({
-      ...body,
+      nickname: body.nickname,
+      email: body.email,
+      password_hash: password_hash,
       avatar_url: 'https://example.com/avatar.png',
     });
     if (!user) {
