@@ -9,7 +9,7 @@ export default async function app(fastify: FastifyInstance) {
   setDecorate(fastify);
   setMiddleware(fastify);
 
-  fastify.register(routeV1, { prefix: '/v1' });
+  fastify.register(routeV1, { prefix: 'users/v1' });
 }
 
 function setErrorHandler(fastify: FastifyInstance) {
@@ -25,22 +25,22 @@ function setErrorHandler(fastify: FastifyInstance) {
 
 function setMiddleware(fastify: FastifyInstance) {
   fastify.addHook('onRequest', (request, reply, done) => {
-    const authorized = request.headers['x-authorized'];
+    const authorized = request.headers['x-authenticated'];
     const userId = request.headers['x-user-id'];
-    
+
     if (authorized === undefined || Array.isArray(authorized)) {
       done();
     }
     if (userId === undefined || Array.isArray(userId)) {
       done();
     }
-    if (isNaN(Number(userId)) === true) {
+    if (isNaN(Number(userId))) {
       throw new UnAuthorizedException('user id is not a number');
     }
 
     if (authorized === 'true') {
       request.authorized = true;
-      request.myId = parseInt(userId as string , 10);
+      request.myId = parseInt(userId as string, 10);
     }
     done();
   });

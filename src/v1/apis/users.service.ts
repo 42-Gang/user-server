@@ -1,9 +1,9 @@
-import { NotFoundException } from '../../common/exceptions/core.error.js';
+import { NotFoundException } from '../common/exceptions/core.error.js';
 import { z } from 'zod';
 import { FindUserResponseSchema } from './users.schema.js';
-import { STATUS } from '../../common/constants/status.js';
-import UserRepositoryInterface from '../../storage/database/interfaces/user.repository.interface.js';
-import { UserCacheInterface } from '../../storage/cache/interfaces/user.cache.interface.js';
+import { STATUS } from '../common/constants/status.js';
+import UserRepositoryInterface from '../storage/database/interfaces/user.repository.interface.js';
+import { UserCacheInterface } from '../storage/cache/interfaces/user.cache.interface.js';
 import { User } from '@prisma/client';
 
 export default class UsersService {
@@ -15,7 +15,7 @@ export default class UsersService {
   private toResponseUser(user: User) {
     return {
       id: user.id,
-      name: user.name,
+      nickname: user.nickname,
       email: user.email,
       createdAt: user.created_at,
       updatedAt: user.updated_at,
