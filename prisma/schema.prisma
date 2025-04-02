@@ -8,14 +8,14 @@ datasource db {
 }
 
 model User {
-  id                   Int      @id @default(autoincrement())
-  name             String   @unique
-  email                String   @unique
-  password_hash        String
-  avatar_url           String?
-  two_factor_enabled   Boolean  @default(false)
-  created_at           DateTime @default(now())
-  updated_at           DateTime @updatedAt
+  id                 Int      @id @default(autoincrement())
+  nickname           String   @unique
+  email              String   @unique
+  password_hash      String?
+  avatar_url         String?
+  two_factor_enabled Boolean  @default(false)
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
 
-  @@map("User")
+  @@map("user")
 }
