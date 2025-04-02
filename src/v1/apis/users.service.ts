@@ -54,9 +54,13 @@ export default class UsersService {
   }
 
   async editNickname(
-    id: number,
+    id: number | undefined,
     body: z.infer<typeof editNicknameInputSchema>,
   ): Promise<z.infer<typeof editNicknameResponseSchema>> {
+    if (!id) {
+      throw new NotFoundException('User not found');
+    }
+
     const user = await this.userRepository.update(id, body);
     if (!user) {
       throw new NotFoundException('User not found');

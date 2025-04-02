@@ -12,6 +12,6 @@ declare module 'fastify' {
     };
 
     authenticated: boolean;
-    userId?: number;
+    userId: number | undefined;
   }
 }

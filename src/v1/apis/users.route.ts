@@ -5,6 +5,8 @@ import UsersController from './users.controller.js';
 import {
   createUserInputSchema,
   createUserResponseSchema,
+  editNicknameInputSchema,
+  editNicknameResponseSchema,
   getUserParamsSchema,
   getUserResponseSchema,
 } from './users.schema.js';
@@ -37,6 +39,21 @@ export default async function usersRoutes(fastify: FastifyInstance) {
           params: getUserParamsSchema,
           response: {
             200: getUserResponseSchema,
+          },
+        },
+        auth: true,
+      },
+    },
+    {
+      method: 'PATCH',
+      url: '/me',
+      handler: usersController.editNickname,
+      options: {
+        schema: {
+          tags: ['users'],
+          body: editNicknameInputSchema,
+          response: {
+            200: editNicknameResponseSchema,
           },
         },
         auth: true,

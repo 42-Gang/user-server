@@ -23,6 +23,11 @@ const passwordSchema = z
     '비밀번호는 대소문자, 숫자, 특수문자를 각각 하나 이상 포함해야 합니다.',
   );
 
+const exceptedSensitiveFields = userSchema.omit({
+  password_hash: true,
+  two_factor_auth: true,
+});
+
 export const createUserInputSchema = userSchema
   .pick({
     nickname: true,
@@ -32,12 +37,7 @@ export const createUserInputSchema = userSchema
     password: passwordSchema,
   });
 
-export const createUserResponseSchema = createResponseSchema(
-  userSchema.omit({
-    password_hash: true,
-    two_factor_auth: true,
-  }),
-);
+export const createUserResponseSchema = createResponseSchema(exceptedSensitiveFields);
 
 // getUser
 
@@ -45,12 +45,7 @@ export const getUserParamsSchema = userSchema.pick({
   id: true,
 });
 
-export const getUserResponseSchema = createResponseSchema(
-  userSchema.omit({
-    password_hash: true,
-    two_factor_auth: true,
-  }),
-);
+export const getUserResponseSchema = createResponseSchema(exceptedSensitiveFields);
 
 // editNickname
 
@@ -58,13 +53,4 @@ export const editNicknameInputSchema = userSchema.pick({
   nickname: true,
 });
 
-export const editNicknameParamsSchema = userSchema.pick({
-  id: true,
-});
-
-export const editNicknameResponseSchema = createResponseSchema(
-  userSchema.omit({
-    password_hash: true,
-    two_factor_auth: true,
-  }),
-);
+export const editNicknameResponseSchema = createResponseSchema(exceptedSensitiveFields);
