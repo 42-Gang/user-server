@@ -8,7 +8,7 @@ interface RouteOptions extends RouteShorthandOptions {
 }
 
 export interface Route {
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   url: string;
   handler: RouteHandlerMethod;
   options: RouteOptions;

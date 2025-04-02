@@ -12,6 +12,34 @@ export const userSchema = z.object({
   updated_at: z.date(),
 });
 
+// createUser
+
+const passwordSchema = z
+  .string()
+  .min(8, '비밀번호는 최소 8자 이상이어야 합니다.')
+  .max(20, '비밀번호는 최대 20자까지 가능합니다.')
+  .regex(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/,
+    '비밀번호는 대소문자, 숫자, 특수문자를 각각 하나 이상 포함해야 합니다.',
+  );
+
+export const createUserInputSchema = userSchema
+  .pick({
+    nickname: true,
+    email: true,
+  })
+  .extend({
+    password: passwordSchema,
+    email_code: z.string(),
+  });
+
+export const createUserResponseSchema = createResponseSchema(
+  userSchema.omit({
+    password_hash: true,
+    two_factor_auth: true,
+  }),
+);
+
 // getUser
 
 export const getUserParamsSchema = userSchema.pick({

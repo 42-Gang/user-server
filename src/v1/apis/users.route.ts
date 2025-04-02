@@ -8,6 +8,17 @@ export default async function usersRoutes(fastify: FastifyInstance) {
   const usersController: UsersController = fastify.diContainer.resolve('usersController');
   const routes: Array<Route> = [
     {
+      method: 'POST',
+      url: '/',
+      handler: usersController.createUser,
+      options: {
+        schema: {
+          tags: ['users'],
+        },
+        auth: false,
+      },
+    },
+    {
       method: 'GET',
       url: '/:id',
       handler: usersController.getUser,

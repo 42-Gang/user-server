@@ -1,6 +1,8 @@
 import { NotFoundException } from '../common/exceptions/core.error.js';
 import { z } from 'zod';
 import {
+  createUserInputSchema,
+  createUserResponseSchema,
   editNicknameInputSchema,
   editNicknameResponseSchema,
   getUserResponseSchema,
@@ -10,6 +12,23 @@ import UserRepositoryInterface from '../storage/database/interfaces/user.reposit
 
 export default class UsersService {
   constructor(private readonly userRepository: UserRepositoryInterface) {}
+
+  async createUser(
+    body: z.infer<typeof createUserInputSchema>,
+  ): Promise<z.infer<typeof createUserResponseSchema>> {
+    const user = await this.userRepository.create({
+      ...body,
+      avatar_url: 'https://example.com/avatar.png',
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return {
+      status: STATUS.SUCCESS,
+      data: user,
+    };
+  }
 
   async getUser(id: number): Promise<z.infer<typeof getUserResponseSchema>> {
     const user = await this.userRepository.findById(id);
