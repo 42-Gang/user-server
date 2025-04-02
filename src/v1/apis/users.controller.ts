@@ -1,7 +1,11 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 
 import UsersService from './users.service.js';
-import { createUserInputSchema, getUserParamsSchema } from './users.schema.js';
+import {
+  createUserInputSchema,
+  getUserParamsSchema,
+  getUserResponseSchema,
+} from './users.schema.js';
 
 export default class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -15,6 +19,7 @@ export default class UsersController {
   getUser = async (request: FastifyRequest, reply: FastifyReply) => {
     const params = getUserParamsSchema.parse(request.params);
     const result = await this.usersService.getUser(params.id);
+    getUserResponseSchema.parse(result);
     reply.code(200).send(result);
   };
 }

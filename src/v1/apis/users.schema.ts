@@ -30,7 +30,6 @@ export const createUserInputSchema = userSchema
   })
   .extend({
     password: passwordSchema,
-    email_code: z.string(),
   });
 
 export const createUserResponseSchema = createResponseSchema(

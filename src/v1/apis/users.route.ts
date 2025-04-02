@@ -2,7 +2,12 @@ import { FastifyInstance } from 'fastify';
 
 import { addRoutes, Route } from '../../plugins/router.js';
 import UsersController from './users.controller.js';
-import { getUserParamsSchema } from './users.schema.js';
+import {
+  createUserInputSchema,
+  createUserResponseSchema,
+  getUserParamsSchema,
+  getUserResponseSchema,
+} from './users.schema.js';
 
 export default async function usersRoutes(fastify: FastifyInstance) {
   const usersController: UsersController = fastify.diContainer.resolve('usersController');
@@ -14,6 +19,10 @@ export default async function usersRoutes(fastify: FastifyInstance) {
       options: {
         schema: {
           tags: ['users'],
+          body: createUserInputSchema,
+          response: {
+            201: createUserResponseSchema,
+          },
         },
         auth: false,
       },
@@ -26,6 +35,9 @@ export default async function usersRoutes(fastify: FastifyInstance) {
         schema: {
           tags: ['users'],
           params: getUserParamsSchema,
+          response: {
+            200: getUserResponseSchema,
+          },
         },
         auth: true,
       },
