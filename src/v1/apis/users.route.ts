@@ -1,8 +1,8 @@
 import { FastifyInstance } from 'fastify';
 
-import { getUserParamsSchema } from './user.schema.js';
 import { addRoutes, Route } from '../../plugins/router.js';
 import UsersController from './users.controller.js';
+import { getUserParamsSchema } from './users.schema.js';
 
 export default async function usersRoutes(fastify: FastifyInstance) {
   const usersController: UsersController = fastify.diContainer.resolve('usersController');

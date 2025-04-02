@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 
-import { getUserParamsSchema } from './user.schema.js';
 import UsersService from './users.service.js';
+import { getUserParamsSchema } from './users.schema.js';
 
 export default class UsersController {
   constructor(private readonly usersService: UsersService) {}
