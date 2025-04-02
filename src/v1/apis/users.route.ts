@@ -2,16 +2,13 @@ import { FastifyInstance } from 'fastify';
 
 import { addRoutes, Route } from '../../plugins/router.js';
 import UsersController from './users.controller.js';
+import { createUserInputSchema, createUserResponseSchema } from './schemas/createUser.schema.js';
+import { getUserParamsSchema, getUserResponseSchema } from './schemas/getUser.schema.js';
 import {
-  createUserInputSchema,
-  createUserResponseSchema,
   editNicknameInputSchema,
   editNicknameResponseSchema,
-  getUserParamsSchema,
-  getUserResponseSchema,
-  searchUserParamsSchema,
-  searchUserResponseSchema,
-} from './users.schema.js';
+} from './schemas/editNickname.schema.js';
+import { searchUserParamsSchema, searchUserResponseSchema } from './schemas/searchUser.schema.js';
 
 export default async function usersRoutes(fastify: FastifyInstance) {
   const usersController: UsersController = fastify.diContainer.resolve('usersController');

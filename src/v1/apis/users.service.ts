@@ -7,7 +7,7 @@ import {
   editNicknameResponseSchema,
   getUserResponseSchema,
   searchUserResponseSchema,
-} from './users.schema.js';
+} from './schemas/users.schema.js';
 import { STATUS } from '../common/constants/status.js';
 import UserRepositoryInterface from '../storage/database/interfaces/user.repository.interface.js';
 import bcrypt from 'bcrypt';

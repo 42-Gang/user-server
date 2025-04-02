@@ -1,13 +1,10 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 
 import UsersService from './users.service.js';
-import {
-  createUserInputSchema,
-  editNicknameInputSchema,
-  getUserParamsSchema,
-  getUserResponseSchema,
-  searchUserParamsSchema,
-} from './users.schema.js';
+import { createUserInputSchema } from './schemas/createUser.schema.js';
+import { getUserParamsSchema, getUserResponseSchema } from './schemas/getUser.schema.js';
+import { editNicknameInputSchema } from './schemas/editNickname.schema.js';
+import { searchUserParamsSchema } from './schemas/searchUser.schema.js';
 
 export default class UsersController {
   constructor(private readonly usersService: UsersService) {}
