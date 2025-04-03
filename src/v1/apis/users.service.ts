@@ -39,9 +39,6 @@ export default class UsersService {
       password_hash: password_hash,
       avatar_url: 'https://example.com/avatar.png',
     });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
 
     return {
       status: STATUS.SUCCESS,
