@@ -35,6 +35,7 @@ export default class UserRepositoryPrisma implements UserRepositoryInterface {
           startsWith: nickname,
         },
       },
+      take: 10,
     });
   }
 }
