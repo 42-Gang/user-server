@@ -32,11 +32,11 @@ export default class UsersService {
       throw new ConflictException('User already exists');
     }
 
-    const password_hash = await this.crypt.hash(body.password, 10);
+    const passwordHash = await this.crypt.hash(body.password, 10);
     const user = await this.userRepository.create({
       nickname: body.nickname,
       email: body.email,
-      password_hash: password_hash,
+      password_hash: passwordHash,
       avatar_url: 'https://example.com/avatar.png',
     });
 
