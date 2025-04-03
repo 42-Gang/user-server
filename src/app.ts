@@ -2,14 +2,13 @@ import { FastifyError, FastifyInstance, FastifyReply, FastifyRequest } from 'fas
 
 import routeV1 from './v1/index.js';
 import { STATUS } from './v1/common/constants/status.js';
-import { UnAuthorizedException } from './v1/common/exceptions/core.error.js';
 
 export default async function app(fastify: FastifyInstance) {
   setErrorHandler(fastify);
   setDecorate(fastify);
   setMiddleware(fastify);
 
-  fastify.register(routeV1, { prefix: '/v1' });
+  fastify.register(routeV1, { prefix: 'users/v1' });
 }
 
 function setErrorHandler(fastify: FastifyInstance) {
@@ -25,22 +24,27 @@ function setErrorHandler(fastify: FastifyInstance) {
 
 function setMiddleware(fastify: FastifyInstance) {
   fastify.addHook('onRequest', (request, reply, done) => {
-    const authorized = request.headers['x-authorized'];
+    const authenticated = request.headers['x-authenticated'];
     const userId = request.headers['x-user-id'];
-    
-    if (authorized === undefined || Array.isArray(authorized)) {
-      done();
-    }
-    if (userId === undefined || Array.isArray(userId)) {
-      done();
-    }
-    if (isNaN(Number(userId)) === true) {
-      throw new UnAuthorizedException('user id is not a number');
+
+    if (authenticated === undefined || Array.isArray(authenticated)) {
+      request.authenticated = false;
+      request.userId = undefined;
     }
 
-    if (authorized === 'true') {
-      request.authorized = true;
-      request.myId = parseInt(userId as string , 10);
+    if (userId === undefined || Array.isArray(userId)) {
+      request.authenticated = false;
+      request.userId = undefined;
+    }
+
+    if (isNaN(Number(userId))) {
+      request.authenticated = false;
+      request.userId = undefined;
+    }
+
+    if (authenticated === 'true') {
+      request.authenticated = true;
+      request.userId = parseInt(userId as string, 10);
     }
     done();
   });
@@ -48,8 +52,8 @@ function setMiddleware(fastify: FastifyInstance) {
 
 function setDecorate(fastify: FastifyInstance) {
   fastify.decorate('authenticate', async (request: FastifyRequest, reply: FastifyReply) => {
-    console.log(request.authorized);
-    if (!request.authorized) {
+    console.log(request.authenticated);
+    if (!request.authenticated) {
       reply.code(401).send({
         status: STATUS.ERROR,
         message: 'Unauthorized',
