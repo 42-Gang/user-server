@@ -7,7 +7,7 @@ export const authenticateUserInputSchema = userSchema
     email: true,
   })
   .extend({
-    password: z.string().default('password'),
+    password: z.string(),
   });
 
 export const authenticateUserResponseSchema = createResponseSchema(z.undefined());
