@@ -1,5 +1,5 @@
 import { Server } from 'socket.io';
-import chatNamespace from './chat/chat.namespace.js';
+import statusNamespace from './status/status.namespace.js';
 
 export const registerSocketGateway = (io: Server) => {
   io.on('connection', (socket) => {
@@ -9,5 +9,5 @@ export const registerSocketGateway = (io: Server) => {
     });
   });
 
-  chatNamespace(io.of('/chat'));
+  statusNamespace(io.of('/status'));
 };
