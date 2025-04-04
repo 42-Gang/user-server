@@ -1,12 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { HttpClient } from '../../../../src/plugins/http/interface/http.client.interface';
-import { gotClient } from '../../../../src/plugins/http/got/http.client';
+import { gotClient } from '../../../../src/plugins/http.client.js';
 
 describe('HTTP Client', () => {
   it('GET jsonplaceholder.typicode.com', async () => {
-    const httpClient: HttpClient = gotClient;
-
-    const result = await httpClient.request({
+    const result = await gotClient.request<{ userId: number }>({
       method: 'GET',
       url: 'https://jsonplaceholder.typicode.com/todos/1',
     });
@@ -14,10 +11,28 @@ describe('HTTP Client', () => {
     expect(result.body.userId).toBe(1);
   });
 
-  it('POST jsonplaceholder.typicode.com', async () => {
-    const httpClient: HttpClient = gotClient;
+  it('GET 404 test', async () => {
+    const result = await gotClient.request({
+      method: 'GET',
+      url: 'http://localhost:3000/asoefijoiejfoiawjfo',
+    });
 
-    const result = await httpClient.request({
+    console.log(result.statusCode);
+    expect(result.statusCode).toBe(404);
+  });
+
+  it('GET not exist url', async () => {
+    const result = await gotClient.request({
+      method: 'GET',
+      url: 'http://oasiejfoaiejfoiawjefoaiwejfoaeijfow',
+    });
+
+    console.log(result.statusCode);
+    expect(result.statusCode).toBe(404);
+  });
+
+  it('POST jsonplaceholder.typicode.com', async () => {
+    const result = await gotClient.request({
       method: 'POST',
       url: 'https://jsonplaceholder.typicode.com/posts',
       body: {
@@ -32,9 +47,7 @@ describe('HTTP Client', () => {
   });
 
   it('PUT jsonplaceholder.typicode.com', async () => {
-    const httpClient: HttpClient = gotClient;
-
-    const result = await httpClient.request({
+    const result = await gotClient.request({
       method: 'PUT',
       url: 'https://jsonplaceholder.typicode.com/posts/1',
       body: {
@@ -49,9 +62,7 @@ describe('HTTP Client', () => {
   });
 
   it('DELETE jsonplaceholder.typicode.com', async () => {
-    const httpClient: HttpClient = gotClient;
-
-    const result = await httpClient.request({
+    const result = await gotClient.request({
       method: 'DELETE',
       url: 'https://jsonplaceholder.typicode.com/posts/1',
     });
