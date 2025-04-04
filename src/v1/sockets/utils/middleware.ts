@@ -7,15 +7,15 @@ type NextFunction = (err?: Error) => void;
 
 export async function socketMiddleware(socket: Socket, next: NextFunction) {
   try {
-    const token = socket.handshake.query.token;
-    if (!token) {
-      throw new UnAuthorizedException('인증되지 않은 사용자입니다.');
-    }
-
     if (process.env.NODE_ENV === 'dev') {
       socket.data.userId = 1;
       next();
       return;
+    }
+
+    const token = socket.handshake.query.token;
+    if (!token) {
+      throw new UnAuthorizedException('인증되지 않은 사용자입니다.');
     }
 
     const response = await gotClient.request<{ user_id: number }>({
