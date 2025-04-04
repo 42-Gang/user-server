@@ -8,7 +8,7 @@ type NextFunction = (err?: Error) => void;
 export async function socketMiddleware(socket: Socket, next: NextFunction) {
   try {
     if (process.env.NODE_ENV === 'dev') {
-      socket.data.userId = 1;
+      socket.data.userId = socket.handshake.query.userId;
       next();
       return;
     }
@@ -32,3 +32,4 @@ export async function socketMiddleware(socket: Socket, next: NextFunction) {
     next(new UnAuthorizedException('인증되지 않은 사용자입니다.'));
   }
 }
+
