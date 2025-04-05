@@ -5,7 +5,7 @@ const kafka = new Kafka({ brokers: ['localhost:9092'] });
 
 const producer = kafka.producer();
 
-export const sendStatus = async (userId: number, status: typeof userStatus) => {
+export const sendStatus = async (userId: number, status: userStatus) => {
   console.log(`Sending status update for user ${userId}: ${status}`);
 
   await producer.connect();
