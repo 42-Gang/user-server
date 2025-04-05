@@ -26,10 +26,9 @@ export async function socketMiddleware(socket: Socket, next: NextFunction) {
       },
     });
 
-    socket.data.userId = response.body.user_id;
+    socket.data.userId = Number(response.body.user_id);
     next();
   } catch (e) {
     next(new UnAuthorizedException('인증되지 않은 사용자입니다.'));
   }
 }
-

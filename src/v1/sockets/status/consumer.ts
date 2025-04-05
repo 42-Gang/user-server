@@ -1,8 +1,7 @@
 import { Kafka } from 'kafkajs';
 import { redis } from '../../../plugins/redis.js';
 import { Namespace } from 'socket.io';
-import { userStatus } from './status.schema.js';
-import { connectProducer, disconnectProducer } from './producer.js';
+import { FriendCacheInterface } from '../../storage/cache/interfaces/friend.cache.interface.js';
 
 const kafka = new Kafka({ brokers: ['localhost:9092'] });
 const consumer = kafka.consumer({ groupId: 'status-consumer-group' });
@@ -33,18 +32,14 @@ async function handleFriendAddMessage(
   message: FriendAddMessage,
   namespace: Namespace,
   userSockets: Map<string, string>,
+  friendCacheRepository: FriendCacheInterface,
 ) {
-  const { userId, friendId } = message;
+  const { userId, friendId } = message; // userId가 친구수락
 
   // 상태 저장
-  await redis.sadd(`user:${userId}:friends`, friendId);
-  await redis.sadd(`user:${friendId}:friends`, userId);
+  await friendCacheRepository.addFriend(Number(userId), [{ id: Number(friendId) }]);
+  await friendCacheRepository.addFriend(Number(friendId), [{ id: Number(userId) }]);
 
-  // 상태 ONLINE 설정
-  await redis.set(`user:${userId}:status`, userStatus.ONLINE);
-  await redis.set(`user:${friendId}:status`, userStatus.ONLINE);
-
-  // ✅ 1번 → user-status-2 룸에 join
   const userSocketId = userSockets.get(userId);
   const friendSocketId = userSockets.get(friendId);
 
@@ -62,21 +57,23 @@ async function handleFriendAddMessage(
   // 이벤트 전송
   namespace.to(`user-status-${friendId}`).emit('friend-status', {
     userId: friendId,
-    status: userStatus.ONLINE,
+    status: (await redis.get(`user:${friendId}:status`)) || 'OFFLINE',
   });
 
   namespace.to(`user-status-${userId}`).emit('friend-status', {
     userId: userId,
-    status: userStatus.ONLINE,
+    status: (await redis.get(`user:${userId}:status`)) || 'OFFLINE',
   });
 }
 
-export async function startConsumer(namespace: Namespace, userSockets: Map<string, string>) {
+export async function startConsumer(
+  namespace: Namespace,
+  userSockets: Map<string, string>,
+  friendCacheRepository: FriendCacheInterface,
+) {
   await consumer.connect();
   await consumer.subscribe({ topic: 'user-status-topic', fromBeginning: false });
   await consumer.subscribe({ topic: 'friend-add-topic', fromBeginning: false });
-
-  await connectProducer();
 
   await consumer.run({
     eachMessage: async ({ topic, message }) => {
@@ -87,13 +84,16 @@ export async function startConsumer(namespace: Namespace, userSockets: Map<strin
         if (topic === 'user-status-topic') {
           await handleUserStatusMessage(parsedMessage as UserStatusMessage, namespace);
         } else if (topic === 'friend-add-topic') {
-          await handleFriendAddMessage(parsedMessage as FriendAddMessage, namespace, userSockets);
+          await handleFriendAddMessage(
+            parsedMessage as FriendAddMessage,
+            namespace,
+            userSockets,
+            friendCacheRepository,
+          );
         }
       } else {
         console.warn(`Received message with null value from topic ${topic}`);
       }
     },
   });
-
-  await disconnectProducer();
 }

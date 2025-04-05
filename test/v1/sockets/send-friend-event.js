@@ -17,7 +17,7 @@ const run = async () => {
         key: '1323235',
         value: JSON.stringify({
           userId: '1',
-          friendId: '10',
+          friendId: '6',
           timestamp: new Date().toISOString(),
         }),
       },
