@@ -1,0 +1,12 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/auth/v1/token/verify"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}
