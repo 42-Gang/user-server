@@ -9,18 +9,20 @@
       "Content-Type": "application/json"
     },
     "jsonBody": {
-      "friends": [
-        {
-          "id": 2,
-          "friend_id": 2,
-          "nickname": "kungbi"
-        },
-        {
-          "id": 3,
-          "friend_id": 3,
-          "nickname": "woonshin"
-        }
-      ]
+      "data": {
+        "friends": [
+          {
+            "id": 2,
+            "friend_id": 2,
+            "nickname": "kungbi"
+          },
+          {
+            "id": 3,
+            "friend_id": 3,
+            "nickname": "woonshin"
+          }
+        ]
+      }
     }
   }
 }
