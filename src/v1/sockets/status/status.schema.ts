@@ -12,4 +12,3 @@ export const userStatusSchema = z.object({
   userId: z.number(),
   status: z.nativeEnum(userStatus),
 });
-

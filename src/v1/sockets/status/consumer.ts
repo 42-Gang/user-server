@@ -97,4 +97,3 @@ export async function startConsumer(namespace: Namespace, userSockets: Map<strin
 
   await disconnectProducer();
 }
-
