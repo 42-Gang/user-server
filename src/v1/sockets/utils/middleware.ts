@@ -20,7 +20,7 @@ export async function socketMiddleware(socket: Socket, next: NextFunction) {
 
     const response = await gotClient.request({
       method: 'POST',
-      url: 'http://localhost:8080/auth/v1/token/verify',
+      url: 'http://localhost:8080/api/auth/v1/token/verify',
       body: {
         access_token: token,
       },

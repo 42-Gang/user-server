@@ -1,7 +1,7 @@
 {
   "request": {
     "method": "GET",
-    "url": "/friends/v1/1"
+    "url": "/api/friends/v1/1"
   },
   "response": {
     "status": 200,
@@ -21,7 +21,6 @@
           "nickname": "woonshin"
         }
       ]
-    },
-    "fixedDelayMilliseconds": 1000
+    }
   }
 }
