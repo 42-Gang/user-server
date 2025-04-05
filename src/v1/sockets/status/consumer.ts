@@ -2,6 +2,7 @@ import { Kafka } from 'kafkajs';
 import { redis } from '../../../plugins/redis.js';
 import { Namespace } from 'socket.io';
 import { userStatus } from './status.schema.js';
+import { connectProducer, disconnectProducer } from './producer.js';
 
 const kafka = new Kafka({ brokers: ['localhost:9092'] });
 const consumer = kafka.consumer({ groupId: 'status-consumer-group' });
@@ -75,6 +76,8 @@ export async function startConsumer(namespace: Namespace, userSockets: Map<strin
   await consumer.subscribe({ topic: 'user-status-topic', fromBeginning: false });
   await consumer.subscribe({ topic: 'friend-add-topic', fromBeginning: false });
 
+  await connectProducer();
+
   await consumer.run({
     eachMessage: async ({ topic, message }) => {
       if (message.value) {
@@ -91,4 +94,7 @@ export async function startConsumer(namespace: Namespace, userSockets: Map<strin
       }
     },
   });
+
+  await disconnectProducer();
 }
+

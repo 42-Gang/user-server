@@ -2,7 +2,7 @@ import { Namespace, Socket } from 'socket.io';
 import * as console from 'node:console';
 import { socketMiddleware } from '../utils/middleware.js';
 import { redis } from '../../../plugins/redis.js';
-import { sendStatus } from './producer.js';
+import { sendStatus, connectProducer, disconnectProducer } from './producer.js';
 import { startConsumer } from './consumer.js';
 import { userStatus } from './status.schema.js';
 
@@ -28,11 +28,13 @@ export default function statusNamespace(namespace: Namespace) {
     }
 
     // 온라인 상태 Kafka로 전송
+    await connectProducer();
     await sendStatus(userId, userStatus.ONLINE);
 
     socket.on('disconnect', async () => {
       console.log(`🔴 [/status] Disconnected: ${socket.id}`);
       await sendStatus(userId, userStatus.OFFLINE);
+      await disconnectProducer();
     });
   });
 }
