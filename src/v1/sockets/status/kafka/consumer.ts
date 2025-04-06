@@ -11,14 +11,8 @@ export async function startConsumer(
   userSockets: Map<string, string>,
   friendCacheRepository: FriendCacheInterface,
 ) {
-  console.log('Starting Kafka consumer...', new Date().toISOString());
   await consumer.connect();
-  console.log('Kafka consumer connected', new Date().toISOString());
-
-  console.log('Kafka consumer subscribing to USER_STATUS and FRIEND_ADD', new Date().toISOString());
   await consumer.subscribe({ topic: TOPICS.USER_STATUS, fromBeginning: false });
-
-  console.log('Kafka consumer subscribing to FRIEND_ADD', new Date().toISOString());
   await consumer.subscribe({ topic: TOPICS.FRIEND_ADD, fromBeginning: false });
 
   await consumer.run({
@@ -39,5 +33,4 @@ export async function startConsumer(
       }
     },
   });
-  console.log('Kafka consumer is running', new Date().toISOString());
 }
