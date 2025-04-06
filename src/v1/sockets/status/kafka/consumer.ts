@@ -24,17 +24,13 @@ export async function startConsumer(
 
       const parsed = JSON.parse(message.value.toString());
 
-      switch (topic) {
-        case TOPICS.USER_STATUS:
-          await handleUserStatusMessage(parsed, namespace);
-          break;
-
-        case TOPICS.FRIEND_ADD:
-          await handleFriendAddMessage(parsed, namespace, userSockets, friendCacheRepository);
-          break;
-
-        default:
-          console.warn(`Unknown topic: ${topic}`);
+      if (topic === TOPICS.USER_STATUS) {
+        await handleUserStatusMessage(parsed, namespace);
+        return;
+      }
+      if (topic === TOPICS.FRIEND_ADD) {
+        await handleFriendAddMessage(parsed, namespace, userSockets, friendCacheRepository);
+        return;
       }
     },
   });
