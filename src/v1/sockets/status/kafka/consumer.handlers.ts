@@ -41,3 +41,20 @@ export async function handleFriendAddMessage(
     namespace.to(`user-status-${id}`).emit('friend-status', { userId: id, status });
   }
 }
+
+export async function blockFriend(message: TypeOf<typeof friendAddMessage>, namespace: Namespace) {
+  const { userAId, userBId } = message;
+  await redis.del(`user:${userAId}:friend:${userBId}`);
+  await redis.del(`user:${userBId}:friend:${userAId}`);
+  console.log(`User ${userAId} blocked user ${userBId}`);
+
+  const userASocketHash = await redis.get(`user:${userAId}:socket`);
+  const userBSocketHash = await redis.get(`user:${userBId}:socket`);
+
+  if (userASocketHash) {
+    namespace.sockets.get(userASocketHash)?.leave(`user-status-${userBId}`);
+  }
+  if (userBSocketHash) {
+    namespace.sockets.get(userBSocketHash)?.leave(`user-status-${userAId}`);
+  }
+}
