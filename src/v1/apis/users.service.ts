@@ -36,8 +36,8 @@ export default class UsersService {
     const user = await this.userRepository.create({
       nickname: body.nickname,
       email: body.email,
-      password_hash: passwordHash,
-      avatar_url: 'https://example.com/avatar.png',
+      passwordHash: passwordHash,
+      avatarUrl: 'https://example.com/avatar.png',
     });
 
     return {
@@ -51,11 +51,11 @@ export default class UsersService {
   ): Promise<z.infer<typeof authenticateUserResponseSchema>> {
     const user = await this.userRepository.findByEmail(body.email);
 
-    if (!user || user.password_hash === null) {
+    if (!user || user.passwordHash === null) {
       throw new UnAuthorizedException('이메일 혹은 비밀번호를 잘못 입력하셨습니다.');
     }
 
-    const passwordValidation = await this.crypt.compare(body.password, user.password_hash);
+    const passwordValidation = await this.crypt.compare(body.password, user.passwordHash);
     if (!passwordValidation) {
       throw new UnAuthorizedException('이메일 혹은 비밀번호를 잘못 입력하셨습니다.');
     }
