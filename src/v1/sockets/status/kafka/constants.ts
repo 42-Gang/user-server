@@ -1,6 +1,6 @@
 export const TOPICS = {
-  USER_STATUS: 'user-status-topic',
-  FRIEND_ADD: 'friend-add-topic',
+  USER_STATUS: 'user-status',
+  FRIEND_ADD: 'friend-add',
 };
 
 export const GROUP_IDS = {

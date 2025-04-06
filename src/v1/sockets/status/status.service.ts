@@ -13,7 +13,7 @@ export default class StatusService {
 
     // 나를 block 한 친구는 제외하고 가져오기 (추가)
     const response = await gotClient.request<{
-      data: { friends: { id: number; friend_id: number; nickname: string }[] };
+      data: { friends: { id: number; friendId: number; nickname: string }[] };
     }>({
       method: 'GET',
       url: `http://localhost:8080/api/friends/v1/${userId}`,

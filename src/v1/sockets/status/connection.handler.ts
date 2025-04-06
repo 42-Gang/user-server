@@ -40,11 +40,11 @@ async function joinFriendStatusRooms(
   friends: TypeOf<typeof friendsSchema>,
 ) {
   for (const friend of friends) {
-    const status = await redis.get(`user:${friend.id}:status`);
+    const status = await redis.get(`user:${friend.friendId}:status`);
     socket.emit('friend-status', {
-      userId: friend.id,
+      userId: friend.friendId,
       status: status || 'OFFLINE',
     });
-    socket.join(`user-status-${friend.id}`);
+    socket.join(`user-status-${friend.friendId}`);
   }
 }

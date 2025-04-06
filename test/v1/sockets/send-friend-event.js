@@ -11,13 +11,13 @@ const run = async () => {
   await producer.connect();
 
   await producer.send({
-    topic: 'friend-add-topic',
+    topic: 'friend-add',
     messages: [
       {
         key: '1323235',
         value: JSON.stringify({
-          userId: '1',
-          friendId: '6',
+          userAId: '1',
+          userBId: '6',
           timestamp: new Date().toISOString(),
         }),
       },

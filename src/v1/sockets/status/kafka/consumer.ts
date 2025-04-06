@@ -1,19 +1,24 @@
-import { Kafka } from 'kafkajs';
 import { Namespace } from 'socket.io';
 import { FriendCacheInterface } from '../../../storage/cache/interfaces/friend.cache.interface.js';
 import { TOPICS, GROUP_IDS } from './constants.js';
 import { handleUserStatusMessage, handleFriendAddMessage } from './consumer.handlers.js';
+import { kafka } from '../../../../plugins/kafka.js';
 
-const kafka = new Kafka({ brokers: ['localhost:9092'] });
-const consumer = kafka.consumer({ groupId: GROUP_IDS.STATUS });
+const consumer = kafka.consumer({ groupId: GROUP_IDS.STATUS, sessionTimeout: 10000 });
 
 export async function startConsumer(
   namespace: Namespace,
   userSockets: Map<string, string>,
   friendCacheRepository: FriendCacheInterface,
 ) {
+  console.log('Starting Kafka consumer...', new Date().toISOString());
   await consumer.connect();
+  console.log('Kafka consumer connected', new Date().toISOString());
+
+  console.log('Kafka consumer subscribing to USER_STATUS and FRIEND_ADD', new Date().toISOString());
   await consumer.subscribe({ topic: TOPICS.USER_STATUS, fromBeginning: false });
+
+  console.log('Kafka consumer subscribing to FRIEND_ADD', new Date().toISOString());
   await consumer.subscribe({ topic: TOPICS.FRIEND_ADD, fromBeginning: false });
 
   await consumer.run({
@@ -34,4 +39,5 @@ export async function startConsumer(
       }
     },
   });
+  console.log('Kafka consumer is running', new Date().toISOString());
 }

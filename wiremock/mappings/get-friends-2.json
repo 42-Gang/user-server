@@ -13,12 +13,12 @@
         "friends": [
           {
             "id": 1,
-            "friend_id": 1,
+            "friendId": 1,
             "nickname": "John"
           },
           {
             "id": 3,
-            "friend_id": 3,
+            "friendId": 3,
             "nickname": "woonshin"
           }
         ]
