@@ -9,14 +9,14 @@ import { sendStatus } from './kafka/producer.js';
 export async function handleConnection(
   socket: Socket,
   namespace: Namespace,
-  userSockets: Map<string, string>,
+  userSockets: Map<string, Socket>,
   statusService: StatusService,
 ) {
   try {
     const userId = socket.data.userId;
     console.log(`🟢 [/status] Connected: ${socket.id}, ${userId}`);
 
-    userSockets.set(userId, socket.id);
+    userSockets.set(userId, socket);
     redis.set(`user:${userId}:status`, userStatus.ONLINE);
 
     const friends = await statusService.fetchFriends(userId);

@@ -1,4 +1,4 @@
-import { Namespace } from 'socket.io';
+import { Namespace, Socket } from 'socket.io';
 import { FriendCacheInterface } from '../../../storage/cache/interfaces/friend.cache.interface.js';
 import { TOPICS, GROUP_IDS } from './constants.js';
 import {
@@ -12,7 +12,7 @@ const consumer = kafka.consumer({ groupId: GROUP_IDS.STATUS, sessionTimeout: 100
 
 export async function startConsumer(
   namespace: Namespace,
-  userSockets: Map<string, string>,
+  userSockets: Map<string, Socket>,
   friendCacheRepository: FriendCacheInterface,
 ) {
   await consumer.connect();

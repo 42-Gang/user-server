@@ -1,4 +1,4 @@
-import { Namespace } from 'socket.io';
+import { Namespace, Socket } from 'socket.io';
 import { redis } from '../../../../plugins/redis.js';
 import { FriendCacheInterface } from '../../../storage/cache/interfaces/friend.cache.interface.js';
 import { friendAddMessage, friendBlockMessage, userStatusMessage } from './messages.schema.js';
@@ -18,7 +18,7 @@ export async function handleUserStatusMessage(
 export async function handleFriendAddMessage(
   message: TypeOf<typeof friendAddMessage>,
   namespace: Namespace,
-  userSockets: Map<string, string>,
+  userSockets: Map<string, Socket>,
   friendCacheRepository: FriendCacheInterface,
 ) {
   const { userAId, userBId } = message;
@@ -32,7 +32,7 @@ export async function handleFriendAddMessage(
 export async function handleFriendBlockMessage(
   message: TypeOf<typeof friendBlockMessage>,
   namespace: Namespace,
-  userSockets: Map<string, string>,
+  userSockets: Map<string, Socket>,
   friendCacheRepository: FriendCacheInterface,
 ) {
   const { userAId, userBId } = message;
@@ -52,19 +52,15 @@ export async function handleFriendBlockMessage(
 
 async function emitFriendStatus(
   namespace: Namespace,
-  userSockets: Map<string, string>,
+  userSockets: Map<string, Socket>,
   userAId: string,
   userBId: string,
 ) {
-  const userASocketHash = userSockets.get(userAId);
-  const userBSocketHash = userSockets.get(userBId);
+  const userASocket = userSockets.get(userAId);
+  const userBSocket = userSockets.get(userBId);
 
-  if (userASocketHash) {
-    namespace.sockets.get(userASocketHash)?.join(`user-status-${userBId}`);
-  }
-  if (userBSocketHash) {
-    namespace.sockets.get(userBSocketHash)?.join(`user-status-${userAId}`);
-  }
+  userASocket?.join(`user-status-${userBId}`);
+  userBSocket?.join(`user-status-${userAId}`);
 
   for (const id of [userAId, userBId]) {
     const status = (await redis.get(`user:${id}:status`)) || 'OFFLINE';
