@@ -2,7 +2,7 @@ import { Kafka } from 'kafkajs';
 
 const kafka = new Kafka({
   clientId: 'test-client',
-  brokers: ['localhost:9092'], // Docker 환경에 맞게 수정
+  brokers: [process.env.KAFKA_BROKER], // Docker 환경에 맞게 수정
 });
 
 const producer = kafka.producer();
