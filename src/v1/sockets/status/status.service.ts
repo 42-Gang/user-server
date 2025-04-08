@@ -16,7 +16,7 @@ export default class StatusService {
       data: { friends: { id: number; friendId: number; nickname: string }[] };
     }>({
       method: 'GET',
-      url: `http://localhost:8080/api/friends/v1/${userId}`,
+      url: `http://localhost:8080/api/v1/friends/${userId}`,
       headers: {
         'X-Authenticated': 'true',
         'X-User-Id': userId.toString(),
