@@ -37,7 +37,12 @@ export async function startConsumer(
         return;
       }
       if (topic === TOPICS.FRIEND_BLOCK) {
-        await handleFriendBlockMessage(parsedMessage, namespace, userSockets, friendCacheRepository);
+        await handleFriendBlockMessage(
+          parsedMessage,
+          namespace,
+          userSockets,
+          friendCacheRepository,
+        );
         return;
       }
     },
