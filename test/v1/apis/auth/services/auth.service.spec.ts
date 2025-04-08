@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { TypeOf } from 'zod';
 import {
   loginRequestSchema,
   signupRequestSchema,
@@ -28,7 +28,7 @@ describe('Auth Service', () => {
 
   describe('signupService', () => {
     it('should return success status and message', async () => {
-      const data: z.infer<typeof signupRequestSchema> = {
+      const data: TypeOf<typeof signupRequestSchema> = {
         email: 'testuser',
         password: 'testpassword',
         name: 'testname',
@@ -55,7 +55,7 @@ describe('Auth Service', () => {
 
   describe('loginService', () => {
     it('should return success status, message, and access token', async () => {
-      const data: z.infer<typeof loginRequestSchema> = {
+      const data: TypeOf<typeof loginRequestSchema> = {
         email: 'testuser',
         password: 'testpassword',
       };

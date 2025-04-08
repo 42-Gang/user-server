@@ -3,7 +3,7 @@ import {
   NotFoundException,
   UnAuthorizedException,
 } from '../common/exceptions/core.error.js';
-import { z } from 'zod';
+import { TypeOf } from 'zod';
 import { STATUS } from '../common/constants/status.js';
 import UserRepositoryInterface from '../storage/database/interfaces/user.repository.interface.js';
 import bcrypt from 'bcrypt';
@@ -26,8 +26,8 @@ export default class UsersService {
   ) {}
 
   async createUser(
-    body: z.infer<typeof createUserInputSchema>,
-  ): Promise<z.infer<typeof createUserResponseSchema>> {
+    body: TypeOf<typeof createUserInputSchema>,
+  ): Promise<TypeOf<typeof createUserResponseSchema>> {
     if (await this.userRepository.findByEmail(body.email)) {
       throw new ConflictException('User already exists');
     }
@@ -47,8 +47,8 @@ export default class UsersService {
   }
 
   async authenticateUser(
-    body: z.infer<typeof authenticateUserInputSchema>,
-  ): Promise<z.infer<typeof authenticateUserResponseSchema>> {
+    body: TypeOf<typeof authenticateUserInputSchema>,
+  ): Promise<TypeOf<typeof authenticateUserResponseSchema>> {
     const user = await this.userRepository.findByEmail(body.email);
 
     if (!user || user.passwordHash === null) {
@@ -66,7 +66,7 @@ export default class UsersService {
     };
   }
 
-  async getUser(id: number): Promise<z.infer<typeof getUserResponseSchema>> {
+  async getUser(id: number): Promise<TypeOf<typeof getUserResponseSchema>> {
     const user = await this.userRepository.findById(id);
     if (!user) {
       throw new NotFoundException('User not found');
@@ -80,8 +80,8 @@ export default class UsersService {
 
   async editNickname(
     id: number | undefined,
-    body: z.infer<typeof editNicknameInputSchema>,
-  ): Promise<z.infer<typeof editNicknameResponseSchema>> {
+    body: TypeOf<typeof editNicknameInputSchema>,
+  ): Promise<TypeOf<typeof editNicknameResponseSchema>> {
     if (!id) {
       throw new NotFoundException('User not found');
     }
@@ -97,7 +97,7 @@ export default class UsersService {
     };
   }
 
-  async searchUser(nickname: string): Promise<z.infer<typeof searchUserResponseSchema>> {
+  async searchUser(nickname: string): Promise<TypeOf<typeof searchUserResponseSchema>> {
     const users = await this.userRepository.findByNicknameStartsWith(nickname);
 
     return {

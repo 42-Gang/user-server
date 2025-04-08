@@ -1,13 +1,13 @@
 import { FriendCacheInterface } from '../../storage/cache/interfaces/friend.cache.interface.js';
 import { friendsSchema } from './friends.schema.js';
-import { z } from 'zod';
+import { TypeOf } from 'zod';
 import { gotClient } from '../../../plugins/http.client.js';
 import * as console from 'node:console';
 
 export default class StatusService {
   constructor(private readonly friendCacheRepository: FriendCacheInterface) {}
 
-  async fetchFriends(userId: number): Promise<z.infer<typeof friendsSchema>> {
+  async fetchFriends(userId: number): Promise<TypeOf<typeof friendsSchema>> {
     const cachedFriends = await this.friendCacheRepository.getFriends(userId);
     if (cachedFriends?.length) return cachedFriends;
 
