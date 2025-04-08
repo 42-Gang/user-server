@@ -4,7 +4,7 @@ import { TOPICS, GROUP_IDS } from './constants.js';
 import {
   handleUserStatusMessage,
   handleFriendAddMessage,
-  blockFriend,
+  handleFriendBlockMessage,
 } from './consumer.handlers.js';
 import { kafka } from '../../../../plugins/kafka.js';
 
@@ -37,7 +37,7 @@ export async function startConsumer(
         return;
       }
       if (topic === TOPICS.FRIEND_BLOCK) {
-        await blockFriend(parsedMessage, namespace);
+        await handleFriendBlockMessage(parsedMessage, namespace, userSockets, friendCacheRepository);
         return;
       }
     },

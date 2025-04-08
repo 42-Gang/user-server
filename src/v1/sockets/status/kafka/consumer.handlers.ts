@@ -1,7 +1,7 @@
 import { Namespace } from 'socket.io';
 import { redis } from '../../../../plugins/redis.js';
 import { FriendCacheInterface } from '../../../storage/cache/interfaces/friend.cache.interface.js';
-import { friendAddMessage, userStatusMessage } from './messages.schema.js';
+import { friendAddMessage, friendBlockMessage, userStatusMessage } from './messages.schema.js';
 import { TypeOf } from 'zod';
 
 export async function handleUserStatusMessage(
@@ -25,10 +25,40 @@ export async function handleFriendAddMessage(
   await friendCacheRepository.addFriend(Number(userAId), { friendId: Number(userBId) });
   await friendCacheRepository.addFriend(Number(userBId), { friendId: Number(userAId) });
 
+  console.log(userSockets, userAId, userBId);
+  await emitFriendStatus(namespace, userSockets, userAId, userBId);
+}
+
+export async function handleFriendBlockMessage(
+  message: TypeOf<typeof friendBlockMessage>,
+  namespace: Namespace,
+  userSockets: Map<string, string>,
+  friendCacheRepository: FriendCacheInterface,
+) {
+  const { userAId, userBId } = message;
+
+  if (message.status === 'BLOCKED') {
+    await redis.del(`user:${userAId}:friend:${userBId}`);
+    await redis.del(`user:${userBId}:friend:${userAId}`);
+  }
+
+  if (message.status === 'UNBLOCKED') {
+    await friendCacheRepository.addFriend(Number(userAId), { friendId: Number(userBId) });
+    await friendCacheRepository.addFriend(Number(userBId), { friendId: Number(userAId) });
+  }
+
+  await emitFriendStatus(namespace, userSockets, userAId, userBId);
+}
+
+async function emitFriendStatus(
+  namespace: Namespace,
+  userSockets: Map<string, string>,
+  userAId: string,
+  userBId: string,
+) {
   const userASocketHash = userSockets.get(userAId);
   const userBSocketHash = userSockets.get(userBId);
 
-  console.log(userSockets, userAId, userBId);
   if (userASocketHash) {
     namespace.sockets.get(userASocketHash)?.join(`user-status-${userBId}`);
   }
@@ -39,22 +69,5 @@ export async function handleFriendAddMessage(
   for (const id of [userAId, userBId]) {
     const status = (await redis.get(`user:${id}:status`)) || 'OFFLINE';
     namespace.to(`user-status-${id}`).emit('friend-status', { friendId: id, status });
-  }
-}
-
-export async function blockFriend(message: TypeOf<typeof friendAddMessage>, namespace: Namespace) {
-  const { userAId, userBId } = message;
-  await redis.del(`user:${userAId}:friend:${userBId}`);
-  await redis.del(`user:${userBId}:friend:${userAId}`);
-  console.log(`User ${userAId} blocked user ${userBId}`);
-
-  const userASocketHash = await redis.get(`user:${userAId}:socket`);
-  const userBSocketHash = await redis.get(`user:${userBId}:socket`);
-
-  if (userASocketHash) {
-    namespace.sockets.get(userASocketHash)?.leave(`user-status-${userBId}`);
-  }
-  if (userBSocketHash) {
-    namespace.sockets.get(userBSocketHash)?.leave(`user-status-${userAId}`);
   }
 }
