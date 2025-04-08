@@ -27,7 +27,7 @@ export default class StatusService {
     console.log('friends', friends);
 
     friendsSchema.parse(friends);
-    await this.friendCacheRepository.addFriend(userId, friends);
+    await this.friendCacheRepository.addFriends(userId, friends);
     return friends;
   }
 }

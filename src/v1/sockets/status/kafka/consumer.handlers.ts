@@ -22,8 +22,8 @@ export async function handleFriendAddMessage(
   friendCacheRepository: FriendCacheInterface,
 ) {
   const { userAId, userBId } = message;
-  await friendCacheRepository.addFriend(Number(userAId), [{ friendId: Number(userBId) }]);
-  await friendCacheRepository.addFriend(Number(userBId), [{ friendId: Number(userAId) }]);
+  await friendCacheRepository.addFriend(Number(userAId), { friendId: Number(userBId) });
+  await friendCacheRepository.addFriend(Number(userBId), { friendId: Number(userAId) });
 
   const userASocketHash = userSockets.get(userAId);
   const userBSocketHash = userSockets.get(userBId);
