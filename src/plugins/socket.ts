@@ -2,7 +2,7 @@ import { Server } from 'socket.io';
 import { FastifyInstance } from 'fastify';
 import { registerSocketGateway } from '../v1/sockets/gateway.js';
 import { createAdapter } from '@socket.io/redis-adapter';
-import { Redis } from 'ioredis';
+import { redis } from './redis.js';
 
 export function createSocketServer(fastify: FastifyInstance) {
   const socket = new Server(fastify.server, {
@@ -12,10 +12,7 @@ export function createSocketServer(fastify: FastifyInstance) {
   });
   socket.logger = fastify.log;
 
-  const pubClient = new Redis({
-    host: process.env.REDIS_HOST || 'localhost',
-    port: Number(process.env.REDIS_PORT) || 6379,
-  });
+  const pubClient = redis;
   const subClient = pubClient.duplicate();
 
   socket.adapter(createAdapter(pubClient, subClient));
