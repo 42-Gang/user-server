@@ -12,7 +12,7 @@ export async function handleUserStatusMessage(
 
   console.log(`🔄 User ${userId} is now ${status}`);
   await redis.set(`user:${userId}:status`, status);
-  namespace.to(`user-status-${userId}`).emit('friend-status', { userId, status });
+  namespace.to(`user-status-${userId}`).emit('friend-status', { friendId: userId, status });
 }
 
 export async function handleFriendAddMessage(
@@ -38,7 +38,7 @@ export async function handleFriendAddMessage(
 
   for (const id of [userAId, userBId]) {
     const status = (await redis.get(`user:${id}:status`)) || 'OFFLINE';
-    namespace.to(`user-status-${id}`).emit('friend-status', { userId: id, status });
+    namespace.to(`user-status-${id}`).emit('friend-status', { friendId: id, status });
   }
 }
 
