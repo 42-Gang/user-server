@@ -20,7 +20,8 @@ export async function handleConnection(
     redis.set(`user:${userId}:status`, userStatus.ONLINE);
 
     const friends = await statusService.fetchFriends(userId);
-    await joinFriendStatusRooms(socket, userId, friends);
+    await joinFriendStatusRooms(socket, friends);
+    await emitFriendsStatus(friends, socket);
 
     await sendStatus(userId, userStatus.ONLINE);
 
@@ -34,17 +35,18 @@ export async function handleConnection(
   }
 }
 
-async function joinFriendStatusRooms(
-  socket: Socket,
-  userId: number,
-  friends: TypeOf<typeof friendsSchema>,
-) {
+async function joinFriendStatusRooms(socket: Socket, friends: TypeOf<typeof friendsSchema>) {
+  for (const friend of friends) {
+    socket.join(`user-status-${friend.friendId}`);
+  }
+}
+
+async function emitFriendsStatus(friends: TypeOf<typeof friendsSchema>, socket: Socket) {
   for (const friend of friends) {
     const status = await redis.get(`user:${friend.friendId}:status`);
     socket.emit('friend-status', {
-      userId: friend.friendId,
+      friendId: friend.friendId,
       status: status || 'OFFLINE',
     });
-    socket.join(`user-status-${friend.friendId}`);
   }
 }
