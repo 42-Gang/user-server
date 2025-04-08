@@ -1,7 +1,7 @@
 import got, { ExtendOptions, Got } from 'got';
 
 interface HttpRequestOptions {
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   url: string;
   body?: unknown;
   queryParams?: Record<string, string | number>;
