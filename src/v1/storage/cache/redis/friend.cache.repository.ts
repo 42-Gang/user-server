@@ -1,6 +1,6 @@
 import { FriendCacheInterface } from '../interfaces/friend.cache.interface.js';
 import { TypeOf } from 'zod';
-import { friendsSchema } from '../../../sockets/status/friends.schema.js';
+import { friendSchema, friendsSchema } from '../../../sockets/status/friends.schema.js';
 import { Redis } from 'ioredis';
 
 export default class FriendCacheRedis implements FriendCacheInterface {
@@ -36,10 +36,14 @@ export default class FriendCacheRedis implements FriendCacheInterface {
     }
   }
 
-  async addFriend(userId: number, friends: TypeOf<typeof friendsSchema>): Promise<void> {
+  async addFriends(userId: number, friends: TypeOf<typeof friendsSchema>): Promise<void> {
     for (const friend of friends) {
-      await this.redisClient.sadd(this.getKey(userId), JSON.stringify(friend));
+      await this.addFriend(userId, friend);
     }
+  }
+
+  async addFriend(userId: number, friend: TypeOf<typeof friendSchema>): Promise<void> {
+    await this.redisClient.sadd(this.getKey(userId), JSON.stringify(friend));
   }
 
   async getFriends(userId: number): Promise<TypeOf<typeof friendsSchema> | null> {
