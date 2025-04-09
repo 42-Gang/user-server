@@ -1,4 +1,4 @@
-import { Namespace, Socket } from 'socket.io';
+import { Namespace } from 'socket.io';
 import { redis } from '../../../../plugins/redis.js';
 import { FriendCacheInterface } from '../../../storage/cache/interfaces/friend.cache.interface.js';
 import { friendAddMessage, friendBlockMessage, userStatusMessage } from './messages.schema.js';
@@ -18,21 +18,18 @@ export async function handleUserStatusMessage(
 export async function handleFriendAddMessage(
   message: TypeOf<typeof friendAddMessage>,
   namespace: Namespace,
-  userSockets: Map<string, Socket>,
   friendCacheRepository: FriendCacheInterface,
 ) {
   const { userAId, userBId } = message;
   await friendCacheRepository.addFriend(Number(userAId), { friendId: Number(userBId) });
   await friendCacheRepository.addFriend(Number(userBId), { friendId: Number(userAId) });
 
-  console.log(userSockets, userAId, userBId);
-  await emitFriendStatus(namespace, userSockets, userAId, userBId);
+  await emitFriendStatus(namespace, userAId, userBId);
 }
 
 export async function handleFriendBlockMessage(
   message: TypeOf<typeof friendBlockMessage>,
   namespace: Namespace,
-  userSockets: Map<string, Socket>,
   friendCacheRepository: FriendCacheInterface,
 ) {
   const { userAId, userBId } = message;
@@ -47,20 +44,15 @@ export async function handleFriendBlockMessage(
     await friendCacheRepository.addFriend(Number(userBId), { friendId: Number(userAId) });
   }
 
-  await emitFriendStatus(namespace, userSockets, userAId, userBId);
+  await emitFriendStatus(namespace, userAId, userBId);
 }
 
-async function emitFriendStatus(
-  namespace: Namespace,
-  userSockets: Map<string, Socket>,
-  userAId: string,
-  userBId: string,
-) {
-  const userASocket = userSockets.get(userAId);
-  const userBSocket = userSockets.get(userBId);
+async function emitFriendStatus(namespace: Namespace, userAId: string, userBId: string) {
+  const userASocket = namespace.in(`user:${userAId}`);
+  const userBSocket = namespace.in(`user:${userBId}`);
 
-  userASocket?.join(`user-status-${userBId}`);
-  userBSocket?.join(`user-status-${userAId}`);
+  userASocket?.socketsJoin(`user-status-${userBId}`);
+  userBSocket?.socketsJoin(`user-status-${userAId}`);
 
   for (const id of [userAId, userBId]) {
     const status = (await redis.get(`user:${id}:status`)) || 'OFFLINE';

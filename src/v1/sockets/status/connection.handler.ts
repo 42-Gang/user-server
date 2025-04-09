@@ -9,14 +9,13 @@ import { sendStatus } from './kafka/producer.js';
 export async function handleConnection(
   socket: Socket,
   namespace: Namespace,
-  userSockets: Map<string, Socket>,
   statusService: StatusService,
 ) {
   try {
     const userId = socket.data.userId;
     console.log(`🟢 [/status] Connected: ${socket.id}, ${userId}`);
 
-    userSockets.set(userId, socket);
+    socket.join(`user:${userId}`);
     redis.set(`user:${userId}:status`, userStatus.ONLINE);
 
     const friends = await statusService.fetchFriends(userId);
@@ -28,7 +27,6 @@ export async function handleConnection(
     socket.on('disconnect', async () => {
       console.log(`🔴 [/status] Disconnected: ${socket.id}`);
       await sendStatus(userId, userStatus.OFFLINE);
-      userSockets.delete(userId);
     });
   } catch (error) {
     console.error(`Error in connection handler: ${error}`);

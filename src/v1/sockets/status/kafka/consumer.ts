@@ -1,4 +1,4 @@
-import { Namespace, Socket } from 'socket.io';
+import { Namespace } from 'socket.io';
 import { FriendCacheInterface } from '../../../storage/cache/interfaces/friend.cache.interface.js';
 import { TOPICS, GROUP_IDS } from './constants.js';
 import {
@@ -12,7 +12,6 @@ const consumer = kafka.consumer({ groupId: GROUP_IDS.STATUS, sessionTimeout: 100
 
 export async function startConsumer(
   namespace: Namespace,
-  userSockets: Map<string, Socket>,
   friendCacheRepository: FriendCacheInterface,
 ) {
   await consumer.connect();
@@ -33,16 +32,11 @@ export async function startConsumer(
         return;
       }
       if (topic === TOPICS.FRIEND_ADD) {
-        await handleFriendAddMessage(parsedMessage, namespace, userSockets, friendCacheRepository);
+        await handleFriendAddMessage(parsedMessage, namespace, friendCacheRepository);
         return;
       }
       if (topic === TOPICS.FRIEND_BLOCK) {
-        await handleFriendBlockMessage(
-          parsedMessage,
-          namespace,
-          userSockets,
-          friendCacheRepository,
-        );
+        await handleFriendBlockMessage(parsedMessage, namespace, friendCacheRepository);
         return;
       }
     },
