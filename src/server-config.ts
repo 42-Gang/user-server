@@ -32,7 +32,7 @@ export async function setupGracefulShutdown(server: FastifyInstance, socket: Ser
       }
       await server.close();
       await socket.close();
-      await producer.connect();
+      await producer.disconnect();
     },
   );
 }
