@@ -15,9 +15,9 @@ export async function startConsumer(
   friendCacheRepository: FriendCacheInterface,
 ) {
   await consumer.connect();
-  await consumer.subscribe({ topic: TOPICS.USER_STATUS, fromBeginning: false });
-  await consumer.subscribe({ topic: TOPICS.FRIEND_ADD, fromBeginning: false });
-  await consumer.subscribe({ topic: TOPICS.FRIEND_BLOCK, fromBeginning: false });
+  await consumer.subscribe({ topic: TOPICS.USER_STATUS, fromBeginning: true });
+  await consumer.subscribe({ topic: TOPICS.FRIEND_ADD, fromBeginning: true });
+  await consumer.subscribe({ topic: TOPICS.FRIEND_BLOCK, fromBeginning: true });
 
   await consumer.run({
     eachMessage: async ({ topic, message }) => {
