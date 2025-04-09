@@ -24,6 +24,7 @@ export async function handleFriendAddMessage(
   await friendCacheRepository.addFriend(Number(userAId), { friendId: Number(userBId) });
   await friendCacheRepository.addFriend(Number(userBId), { friendId: Number(userAId) });
 
+  await joinFriendStatusRooms(namespace, userAId, userBId);
   await emitFriendStatus(namespace, userAId, userBId);
 }
 
@@ -44,18 +45,21 @@ export async function handleFriendBlockMessage(
     await friendCacheRepository.addFriend(Number(userBId), { friendId: Number(userAId) });
   }
 
+  await joinFriendStatusRooms(namespace, userAId, userBId);
   await emitFriendStatus(namespace, userAId, userBId);
 }
 
 async function emitFriendStatus(namespace: Namespace, userAId: string, userBId: string) {
+  for (const id of [userAId, userBId]) {
+    const status = (await redis.get(`user:${id}:status`)) || 'OFFLINE';
+    namespace.to(`user-status-${id}`).emit('friend-status', { friendId: id, status });
+  }
+}
+
+async function joinFriendStatusRooms(namespace: Namespace, userAId: string, userBId: string) {
   const userASocket = namespace.in(`user:${userAId}`);
   const userBSocket = namespace.in(`user:${userBId}`);
 
   userASocket?.socketsJoin(`user-status-${userBId}`);
   userBSocket?.socketsJoin(`user-status-${userAId}`);
-
-  for (const id of [userAId, userBId]) {
-    const status = (await redis.get(`user:${id}:status`)) || 'OFFLINE';
-    namespace.to(`user-status-${id}`).emit('friend-status', { friendId: id, status });
-  }
 }
