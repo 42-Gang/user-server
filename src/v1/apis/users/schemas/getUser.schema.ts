@@ -1,4 +1,4 @@
-import { createResponseSchema } from '../../common/schema/core.schema.js';
+import { createResponseSchema } from '../../../common/schema/core.schema.js';
 import { exceptedSensitiveFields, userSchema } from './users.schema.js';
 
 export const getUserParamsSchema = userSchema.pick({

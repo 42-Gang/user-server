@@ -19,3 +19,20 @@ model User {
 
   @@map("user")
 }
+
+enum Status {
+  PENDING
+  ACCEPTED
+  REJECTED
+  BLOCKED
+}
+
+model Friend {
+  id                   Int      @id @default(autoincrement())
+  userId              Int
+  friendId            Int
+  status               Status     @default(PENDING)
+
+  @@unique([userId, friendId])
+  @@map("friend")
+}
