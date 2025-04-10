@@ -22,7 +22,7 @@ export default class FriendsService {
       throw new NotFoundException('User not found');
     }
     if (userId == friendId) {
-      throw new BadRequestException('You cannot send a friend request to yourself');
+      throw new BadRequestException('');
     }
     const Request = await this.friendRepository.findByUserIdAndFriendId(userId, friendId);
     console.log('🔹 Request Id:', Request?.id);
