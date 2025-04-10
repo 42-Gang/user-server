@@ -3,7 +3,6 @@ import { TypeOf } from 'zod';
 import { STATUS } from '../../common/constants/status.js';
 import {
   NotFoundException,
-  UnAuthorizedException,
   ConflictException,
   BadRequestException,
 } from '../../common/exceptions/core.error.js';
@@ -52,28 +51,32 @@ export default class FriendsService {
         throw new ConflictException('Only pending requests can be accepted');
       }
       await this.friendRepository.update(reverseFriend.id, { status: Status.ACCEPTED });
-    } else {
-      await this.friendRepository.create({
-        userId: friend.friendId,
-        friendId: friend.userId,
-        status: Status.ACCEPTED,
-      });
+      return;
     }
+
+    await this.friendRepository.create({
+      userId: friend.friendId,
+      friendId: friend.userId,
+      status: Status.ACCEPTED,
+    });
   }
 
-  async accept(userId: number, friendId: number): Promise<TypeOf<typeof friendResponseSchema>> {
-    const friend = await this.friendRepository.findByUserIdAndFriendId(userId, friendId);
+  async accept(
+    userId: number | undefined,
+    sender: number,
+  ): Promise<TypeOf<typeof friendResponseSchema>> {
+    if (!userId) {
+      throw new NotFoundException('User not found');
+    }
+    const friend = await this.friendRepository.findByUserIdAndFriendId(sender, userId);
     if (!friend) {
       throw new NotFoundException('Friend request not found');
-    }
-    if (friend.friendId !== userId) {
-      throw new UnAuthorizedException('You are not authorized to perform this action');
     }
     if (friend.status !== Status.PENDING) {
       throw new ConflictException('Only pending requests can be accepted');
     }
 
-    await this.friendRepository.update(friend.friendId, {
+    await this.friendRepository.update(friend.id, {
       status: Status.ACCEPTED,
     });
 
@@ -85,13 +88,16 @@ export default class FriendsService {
     };
   }
 
-  async reject(userId: number, friendId: number): Promise<TypeOf<typeof friendResponseSchema>> {
-    const friend = await this.friendRepository.findByUserIdAndFriendId(userId, friendId);
+  async reject(
+    userId: number | undefined,
+    sender: number,
+  ): Promise<TypeOf<typeof friendResponseSchema>> {
+    if (!userId) {
+      throw new NotFoundException('User not found');
+    }
+    const friend = await this.friendRepository.findByUserIdAndFriendId(sender, userId);
     if (!friend) {
       throw new NotFoundException('Friend request not found');
-    }
-    if (friend.friendId !== userId) {
-      throw new UnAuthorizedException('You are not authorized to perform this action');
     }
     if (friend.status !== Status.PENDING) {
       throw new ConflictException('Only pending requests can be rejected');
@@ -107,13 +113,16 @@ export default class FriendsService {
     };
   }
 
-  async block(userId: number, friendId: number): Promise<TypeOf<typeof friendResponseSchema>> {
+  async block(
+    userId: number | undefined,
+    friendId: number,
+  ): Promise<TypeOf<typeof friendResponseSchema>> {
+    if (!userId) {
+      throw new NotFoundException('User not found');
+    }
     const friend = await this.friendRepository.findByUserIdAndFriendId(userId, friendId);
     if (!friend) {
       throw new NotFoundException('Friend request not found');
-    }
-    if (friend.userId !== userId) {
-      throw new UnAuthorizedException('You are not authorized to perform this action');
     }
     if (friend.status !== Status.ACCEPTED) {
       throw new ConflictException('Only accepted friends can be blocked');
@@ -127,13 +136,16 @@ export default class FriendsService {
     };
   }
 
-  async unblock(userId: number, friendId: number): Promise<TypeOf<typeof friendResponseSchema>> {
+  async unblock(
+    userId: number | undefined,
+    friendId: number,
+  ): Promise<TypeOf<typeof friendResponseSchema>> {
+    if (!userId) {
+      throw new NotFoundException('User not found');
+    }
     const friend = await this.friendRepository.findByUserIdAndFriendId(userId, friendId);
     if (!friend) {
       throw new NotFoundException('Friend request not found');
-    }
-    if (friend.userId !== userId) {
-      throw new UnAuthorizedException('You are not authorized to perform this action');
     }
     if (friend.status !== Status.BLOCKED) {
       throw new ConflictException('Only blocked friends can be unblocked');
