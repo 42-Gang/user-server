@@ -1,6 +1,8 @@
 import { Server } from 'socket.io';
 import { FastifyInstance } from 'fastify';
 import { registerSocketGateway } from '../v1/sockets/gateway.js';
+import { createAdapter } from '@socket.io/redis-adapter';
+import { redis } from './redis.js';
 
 export function createSocketServer(fastify: FastifyInstance) {
   const socket = new Server(fastify.server, {
@@ -8,13 +10,13 @@ export function createSocketServer(fastify: FastifyInstance) {
       origin: '*',
     },
   });
+  socket.logger = fastify.log;
 
-  socket.on('connection', (socket) => {
-    fastify.log.info('Client connected');
-    socket.on('disconnect', () => {
-      fastify.log.info('Client disconnected');
-    });
-  });
+  const pubClient = redis;
+  const subClient = pubClient.duplicate();
+
+  socket.adapter(createAdapter(pubClient, subClient));
+
   registerSocketGateway(socket);
   return socket;
 }

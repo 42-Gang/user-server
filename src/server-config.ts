@@ -6,6 +6,7 @@ import { FastifyInstance } from 'fastify';
 import { fastifyRedis } from '@fastify/redis';
 import swaggerPlugin from './plugins/swagger/swagger-plugin.js';
 import { Server } from 'socket.io';
+import { producer } from './plugins/kafka.js';
 
 export async function configureServer(server: FastifyInstance) {
   server.setValidatorCompiler(validatorCompiler); // Fastify 유효성 검사기 설정
@@ -31,6 +32,7 @@ export async function setupGracefulShutdown(server: FastifyInstance, socket: Ser
       }
       await server.close();
       await socket.close();
+      await producer.disconnect();
     },
   );
 }

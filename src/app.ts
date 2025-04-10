@@ -8,7 +8,7 @@ export default async function app(fastify: FastifyInstance) {
   setDecorate(fastify);
   setMiddleware(fastify);
 
-  fastify.register(routeV1, { prefix: 'users/v1' });
+  fastify.register(routeV1, { prefix: '/v1' });
 }
 
 function setErrorHandler(fastify: FastifyInstance) {
@@ -30,16 +30,19 @@ function setMiddleware(fastify: FastifyInstance) {
     if (authenticated === undefined || Array.isArray(authenticated)) {
       request.authenticated = false;
       request.userId = undefined;
+      done();
     }
 
     if (userId === undefined || Array.isArray(userId)) {
       request.authenticated = false;
       request.userId = undefined;
+      done();
     }
 
     if (isNaN(Number(userId))) {
       request.authenticated = false;
       request.userId = undefined;
+      done();
     }
 
     if (authenticated === 'true') {

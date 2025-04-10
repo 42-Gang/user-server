@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { diContainer, fastifyAwilixPlugin } from '@fastify/awilix';
 import { asClass, asValue, Lifetime } from 'awilix';
 import prisma from './prisma.js';
-import { gotClient } from './http/got/http.client.js';
+import { gotClient } from './http.client.js';
 import bcrypt from 'bcrypt';
 
 export async function setDiContainer(server: FastifyInstance) {

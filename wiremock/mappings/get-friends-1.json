@@ -1,0 +1,28 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/api/v1/friends/1"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "data": {
+        "friends": [
+          {
+            "id": 2,
+            "friendId": 2,
+            "nickname": "kungbi"
+          },
+          {
+            "id": 3,
+            "friendId": 3,
+            "nickname": "woonshin"
+          }
+        ]
+      }
+    }
+  }
+}
