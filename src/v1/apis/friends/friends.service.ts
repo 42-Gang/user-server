@@ -46,7 +46,7 @@ export default class FriendsService {
       friend.friendId,
       friend.userId,
     );
-  
+
     if (reverseFriend) {
       if (reverseFriend.status !== Status.PENDING) {
         throw new ConflictException('Only pending requests can be accepted');
@@ -61,10 +61,7 @@ export default class FriendsService {
     }
   }
 
-  async accept(
-    userId: number,
-    friendId: number,
-  ): Promise<TypeOf<typeof friendResponseSchema>> {
+  async accept(userId: number, friendId: number): Promise<TypeOf<typeof friendResponseSchema>> {
     const friend = await this.friendRepository.findByUserIdAndFriendId(userId, friendId);
     if (!friend) {
       throw new NotFoundException('Friend request not found');
@@ -88,10 +85,7 @@ export default class FriendsService {
     };
   }
 
-  async reject(
-    userId: number,
-    friendId: number,
-  ): Promise<TypeOf<typeof friendResponseSchema>> {
+  async reject(userId: number, friendId: number): Promise<TypeOf<typeof friendResponseSchema>> {
     const friend = await this.friendRepository.findByUserIdAndFriendId(userId, friendId);
     if (!friend) {
       throw new NotFoundException('Friend request not found');
@@ -113,10 +107,7 @@ export default class FriendsService {
     };
   }
 
-  async block(
-    userId: number,
-    friendId: number,
-  ): Promise<TypeOf<typeof friendResponseSchema>> {
+  async block(userId: number, friendId: number): Promise<TypeOf<typeof friendResponseSchema>> {
     const friend = await this.friendRepository.findByUserIdAndFriendId(userId, friendId);
     if (!friend) {
       throw new NotFoundException('Friend request not found');
@@ -136,10 +127,7 @@ export default class FriendsService {
     };
   }
 
-  async unblock(
-    userId: number,
-    friendId: number,
-  ): Promise<TypeOf<typeof friendResponseSchema>> {
+  async unblock(userId: number, friendId: number): Promise<TypeOf<typeof friendResponseSchema>> {
     const friend = await this.friendRepository.findByUserIdAndFriendId(userId, friendId);
     if (!friend) {
       throw new NotFoundException('Friend request not found');
