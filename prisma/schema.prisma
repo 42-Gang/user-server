@@ -28,10 +28,10 @@ enum Status {
 }
 
 model Friend {
-  id                   Int      @id @default(autoincrement())
-  userId              Int
-  friendId            Int
-  status               Status     @default(PENDING)
+  id                  Int      @id @default(autoincrement())
+  userId              Int      @map("user_id")
+  friendId            Int      @map("friend_id")
+  status              Status     @default(PENDING)
 
   @@unique([userId, friendId])
   @@map("friend")
