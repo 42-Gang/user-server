@@ -47,9 +47,6 @@ export default class FriendsService {
     );
 
     if (reverseFriend) {
-      if (reverseFriend.status !== Status.PENDING) {
-        throw new ConflictException('Only pending requests can be accepted');
-      }
       await this.friendRepository.update(reverseFriend.id, { status: Status.ACCEPTED });
       return;
     }
