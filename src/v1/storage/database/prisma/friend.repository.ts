@@ -20,11 +20,11 @@ export default class FriendRepositoryPrisma implements FriendRepositoryInterface
     return this.prisma.friend.findUnique({ where: { id } });
   }
 
-  findByUserIdAndStatus(userId: number, status: Status): Promise<Friend[]> {
+  findAllByUserIdAndStatus(userId: number, status: Status): Promise<Friend[]> {
     return this.prisma.friend.findMany({ where: { userId, status } });
   }
 
-  findByFriendIdAndStatus(friendId: number, status: Status): Promise<Friend[]> {
+  findAllByFriendIdAndStatus(friendId: number, status: Status): Promise<Friend[]> {
     return this.prisma.friend.findMany({ where: { friendId, status } });
   }
 

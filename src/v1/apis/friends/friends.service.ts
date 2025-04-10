@@ -9,7 +9,7 @@ import {
 } from '../../common/exceptions/core.error.js';
 import FriendRepositoryInterface from '../../storage/database/interfaces/friend.repository.interface.js';
 import { friendResponseSchema } from './friends.schema.js';
-import { Status } from '@prisma/client';
+import { Status, Friend } from '@prisma/client';
 
 export default class FriendsService {
   constructor(private readonly friendRepository: FriendRepositoryInterface) {}
@@ -24,9 +24,8 @@ export default class FriendsService {
     if (userId == friendId) {
       throw new BadRequestException('');
     }
-    const Request = await this.friendRepository.findByUserIdAndFriendId(userId, friendId);
-    console.log('🔹 Request Id:', Request?.id);
-    if (Request) {
+    const request = await this.friendRepository.findByUserIdAndFriendId(userId, friendId);
+    if (request) {
       throw new ConflictException('Friend Request already exists');
     }
 
@@ -42,45 +41,46 @@ export default class FriendsService {
     };
   }
 
-  async accept(
-    userId: number | undefined,
-    id: number,
-  ): Promise<TypeOf<typeof friendResponseSchema>> {
-    if (!userId) {
-      throw new NotFoundException('User not found');
-    }
-    const friendEntry = await this.friendRepository.findById(id);
-    if (!friendEntry) {
-      throw new NotFoundException('Friend request not found');
-    }
-    if (friendEntry.friendId !== userId) {
-      throw new UnAuthorizedException('You are not authorized to perform this action');
-    }
-    if (friendEntry.status !== Status.PENDING) {
-      throw new ConflictException('Only pending requests can be accepted');
-    }
-
-    const updatedFriendEntry = await this.friendRepository.update(id, {
-      status: Status.ACCEPTED,
-    });
-
-    const reverseEntry = await this.friendRepository.findByUserIdAndFriendId(
-      updatedFriendEntry.friendId,
-      updatedFriendEntry.userId,
+  private async syncReverseFriendRelation(friend: Friend): Promise<void> {
+    const reverseFriend = await this.friendRepository.findByUserIdAndFriendId(
+      friend.friendId,
+      friend.userId,
     );
-
-    if (reverseEntry) {
-      if (reverseEntry.status !== Status.PENDING) {
+  
+    if (reverseFriend) {
+      if (reverseFriend.status !== Status.PENDING) {
         throw new ConflictException('Only pending requests can be accepted');
       }
-      await this.friendRepository.update(reverseEntry.id, { status: Status.ACCEPTED });
-    } else if (!reverseEntry) {
+      await this.friendRepository.update(reverseFriend.id, { status: Status.ACCEPTED });
+    } else {
       await this.friendRepository.create({
-        userId: updatedFriendEntry.friendId,
-        friendId: updatedFriendEntry.userId,
+        userId: friend.friendId,
+        friendId: friend.userId,
         status: Status.ACCEPTED,
       });
     }
+  }
+
+  async accept(
+    userId: number,
+    friendId: number,
+  ): Promise<TypeOf<typeof friendResponseSchema>> {
+    const friend = await this.friendRepository.findByUserIdAndFriendId(userId, friendId);
+    if (!friend) {
+      throw new NotFoundException('Friend request not found');
+    }
+    if (friend.friendId !== userId) {
+      throw new UnAuthorizedException('You are not authorized to perform this action');
+    }
+    if (friend.status !== Status.PENDING) {
+      throw new ConflictException('Only pending requests can be accepted');
+    }
+
+    await this.friendRepository.update(friend.friendId, {
+      status: Status.ACCEPTED,
+    });
+
+    await this.syncReverseFriendRelation(friend);
 
     return {
       status: STATUS.SUCCESS,
@@ -89,24 +89,21 @@ export default class FriendsService {
   }
 
   async reject(
-    userId: number | undefined,
-    id: number,
+    userId: number,
+    friendId: number,
   ): Promise<TypeOf<typeof friendResponseSchema>> {
-    if (!userId) {
-      throw new NotFoundException('User not found');
-    }
-    const friendEntry = await this.friendRepository.findById(id);
-    if (!friendEntry) {
+    const friend = await this.friendRepository.findByUserIdAndFriendId(userId, friendId);
+    if (!friend) {
       throw new NotFoundException('Friend request not found');
     }
-    if (friendEntry.friendId !== userId) {
+    if (friend.friendId !== userId) {
       throw new UnAuthorizedException('You are not authorized to perform this action');
     }
-    if (friendEntry.status !== Status.PENDING) {
+    if (friend.status !== Status.PENDING) {
       throw new ConflictException('Only pending requests can be rejected');
     }
 
-    await this.friendRepository.update(id, {
+    await this.friendRepository.update(friend.id, {
       status: Status.REJECTED,
     });
 
@@ -117,24 +114,21 @@ export default class FriendsService {
   }
 
   async block(
-    userId: number | undefined,
-    id: number,
+    userId: number,
+    friendId: number,
   ): Promise<TypeOf<typeof friendResponseSchema>> {
-    if (!userId) {
-      throw new NotFoundException('User not found');
-    }
-    const friendEntry = await this.friendRepository.findById(id);
-    if (!friendEntry) {
+    const friend = await this.friendRepository.findByUserIdAndFriendId(userId, friendId);
+    if (!friend) {
       throw new NotFoundException('Friend request not found');
     }
-    if (friendEntry.userId !== userId) {
+    if (friend.userId !== userId) {
       throw new UnAuthorizedException('You are not authorized to perform this action');
     }
-    if (friendEntry.status !== Status.ACCEPTED) {
+    if (friend.status !== Status.ACCEPTED) {
       throw new ConflictException('Only accepted friends can be blocked');
     }
 
-    await this.friendRepository.update(id, { status: Status.BLOCKED });
+    await this.friendRepository.update(friend.id, { status: Status.BLOCKED });
 
     return {
       status: STATUS.SUCCESS,
@@ -143,24 +137,21 @@ export default class FriendsService {
   }
 
   async unblock(
-    userId: number | undefined,
-    id: number,
+    userId: number,
+    friendId: number,
   ): Promise<TypeOf<typeof friendResponseSchema>> {
-    if (!userId) {
-      throw new NotFoundException('User not found');
-    }
-    const friendEntry = await this.friendRepository.findById(id);
-    if (!friendEntry) {
+    const friend = await this.friendRepository.findByUserIdAndFriendId(userId, friendId);
+    if (!friend) {
       throw new NotFoundException('Friend request not found');
     }
-    if (friendEntry.userId !== userId) {
+    if (friend.userId !== userId) {
       throw new UnAuthorizedException('You are not authorized to perform this action');
     }
-    if (friendEntry.status !== Status.BLOCKED) {
+    if (friend.status !== Status.BLOCKED) {
       throw new ConflictException('Only blocked friends can be unblocked');
     }
 
-    await this.friendRepository.update(id, { status: Status.ACCEPTED });
+    await this.friendRepository.update(friend.id, { status: Status.ACCEPTED });
 
     return {
       status: STATUS.SUCCESS,
