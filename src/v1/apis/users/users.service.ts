@@ -2,10 +2,10 @@ import {
   ConflictException,
   NotFoundException,
   UnAuthorizedException,
-} from '../common/exceptions/core.error.js';
+} from '../../common/exceptions/core.error.js';
 import { TypeOf } from 'zod';
-import { STATUS } from '../common/constants/status.js';
-import UserRepositoryInterface from '../storage/database/interfaces/user.repository.interface.js';
+import { STATUS } from '../../common/constants/status.js';
+import UserRepositoryInterface from '../../storage/database/interfaces/user.repository.interface.js';
 import bcrypt from 'bcrypt';
 import { createUserInputSchema, createUserResponseSchema } from './schemas/createUser.schema.js';
 import { getUserResponseSchema } from './schemas/getUser.schema.js';

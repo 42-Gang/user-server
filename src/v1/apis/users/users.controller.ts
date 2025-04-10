@@ -1,4 +1,5 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
+import { FastifyReply, FastifyRequest } from 'fastify';
 
 import UsersService from './users.service.js';
 import { createUserInputSchema } from './schemas/createUser.schema.js';

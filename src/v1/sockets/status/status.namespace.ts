@@ -13,7 +13,5 @@ export default async function statusNamespace(namespace: Namespace) {
 
   startConsumer(namespace, friendCacheRepository);
 
-  namespace.on('connection', (socket) =>
-    handleConnection(socket, namespace, statusService),
-  );
+  namespace.on('connection', (socket) => handleConnection(socket, namespace, statusService));
 }
