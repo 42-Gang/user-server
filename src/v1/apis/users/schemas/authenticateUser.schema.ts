@@ -1,6 +1,6 @@
 import { userSchema } from './users.schema.js';
 import { z } from 'zod';
-import { createResponseSchema } from '../../common/schema/core.schema.js';
+import { createResponseSchema } from '../../../common/schema/core.schema.js';
 
 export const authenticateUserInputSchema = userSchema
   .pick({

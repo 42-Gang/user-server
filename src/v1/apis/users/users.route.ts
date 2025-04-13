@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 
-import { addRoutes, Route } from '../../plugins/router.js';
+import { addRoutes, Route } from '../../../plugins/router.js';
 import UsersController from './users.controller.js';
 import { createUserInputSchema, createUserResponseSchema } from './schemas/createUser.schema.js';
 import { getUserParamsSchema, getUserResponseSchema } from './schemas/getUser.schema.js';
