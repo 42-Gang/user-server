@@ -9,15 +9,23 @@ import {
 import FriendRepositoryInterface from '../../storage/database/interfaces/friend.repository.interface.js';
 import { friendResponseSchema } from './friends.schema.js';
 import { Status, Friend } from '@prisma/client';
+import UserRepositoryInterface from '../../storage/database/interfaces/user.repository.interface.js';
 
 export default class FriendsService {
-  constructor(private readonly friendRepository: FriendRepositoryInterface) {}
+  constructor(
+    private readonly userRepository: UserRepositoryInterface,
+    private readonly friendRepository: FriendRepositoryInterface
+  ) {}
 
   async request(
     userId: number | undefined,
     friendId: number,
   ): Promise<TypeOf<typeof friendResponseSchema>> {
     if (!userId) {
+      throw new NotFoundException('User not found');
+    }
+    const friendUser = await this.userRepository.findById(friendId);
+    if (!friendUser) {
       throw new NotFoundException('User not found');
     }
     if (userId == friendId) {
