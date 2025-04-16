@@ -89,18 +89,18 @@ export default class FriendsService {
     if (!userId) {
       throw new NotFoundException('User not found');
     }
-    const friend = await this.friendRepository.findByUserIdAndFriendId({
+    const friendRequest = await this.friendRepository.findByUserIdAndFriendId({
       userId: sender,
       friendId: userId,
     });
-    if (!friend) {
+    if (!friendRequest) {
       throw new NotFoundException('Friend request not found');
     }
-    if (friend.status !== Status.PENDING) {
+    if (friendRequest.status !== Status.PENDING) {
       throw new ConflictException('Only pending requests can be rejected');
     }
 
-    await this.friendRepository.update(friend.id, {
+    await this.friendRepository.update(friendRequest.id, {
       status: Status.REJECTED,
     });
 
