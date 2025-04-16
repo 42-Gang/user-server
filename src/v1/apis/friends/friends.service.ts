@@ -22,12 +22,16 @@ export default class FriendsService {
     friendId: number,
   ): Promise<TypeOf<typeof friendResponseSchema>> {
     if (!userId) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Sender user not found');
+    }
+    const recipient = await this.userRepository.findById(friendId);
+    if (!recipient) {
+      throw new NotFoundException('Recipient user not found');
     }
     if (userId == friendId) {
       throw new BadRequestException('');
     }
-    const request = await this.friendRepository.findByUserIdAndFriendId(userId, friendId);
+    const request = await this.friendRepository.findByUserIdAndFriendId({ userId, friendId });
     if (request) {
       throw new ConflictException('Friend Request already exists');
     }
@@ -44,48 +48,37 @@ export default class FriendsService {
     };
   }
 
-  private async syncReverseFriendRelation(friend: Friend): Promise<void> {
-    const reverseFriend = await this.friendRepository.findByUserIdAndFriendId(
-      friend.friendId,
-      friend.userId,
-    );
-
-    if (reverseFriend) {
-      await this.friendRepository.update(reverseFriend.id, { status: Status.ACCEPTED });
-      return;
-    }
-
-    await this.friendRepository.create({
-      userId: friend.friendId,
-      friendId: friend.userId,
-      status: Status.ACCEPTED,
-    });
-  }
-
   async accept(
     userId: number | undefined,
-    sender: number,
+    senderId: number,
   ): Promise<TypeOf<typeof friendResponseSchema>> {
     if (!userId) {
       throw new NotFoundException('User not found');
     }
-    const friend = await this.friendRepository.findByUserIdAndFriendId(sender, userId);
-    if (!friend) {
-      throw new NotFoundException('Friend request not found');
+
+    // 상대방이 나에게 보낸 요청
+    const friendRequest = await this.friendRepository.findByUserIdAndFriendId({
+      userId: senderId,
+      friendId: userId,
+    });
+    if (!friendRequest) {
+      throw new NotFoundException('친구 요청을 찾을 수 없습니다.');
     }
-    if (friend.status !== Status.PENDING) {
-      throw new ConflictException('Only pending requests can be accepted');
+    if (friendRequest.status !== Status.PENDING) {
+      throw new ConflictException('대기 요청이 아닙니다.');
     }
 
-    await this.friendRepository.update(friend.id, {
+    // 상대방의 요청 수락
+    await this.friendRepository.update(friendRequest.id, {
       status: Status.ACCEPTED,
     });
 
-    await this.syncReverseFriendRelation(friend);
+    // 나와 상대방의 친구 관계를 동기화
+    await this.syncReverseFriendRelation(friendRequest);
 
     return {
       status: STATUS.SUCCESS,
-      message: 'Friend request accepted successfully',
+      message: '친구 요청을 수락했습니다.',
     };
   }
 
@@ -96,7 +89,10 @@ export default class FriendsService {
     if (!userId) {
       throw new NotFoundException('User not found');
     }
-    const friend = await this.friendRepository.findByUserIdAndFriendId(sender, userId);
+    const friend = await this.friendRepository.findByUserIdAndFriendId({
+      userId: sender,
+      friendId: userId,
+    });
     if (!friend) {
       throw new NotFoundException('Friend request not found');
     }
@@ -121,7 +117,7 @@ export default class FriendsService {
     if (!userId) {
       throw new NotFoundException('User not found');
     }
-    const friend = await this.friendRepository.findByUserIdAndFriendId(userId, friendId);
+    const friend = await this.friendRepository.findByUserIdAndFriendId({ userId, friendId });
     if (!friend) {
       throw new NotFoundException('Friend request not found');
     }
@@ -144,7 +140,7 @@ export default class FriendsService {
     if (!userId) {
       throw new NotFoundException('User not found');
     }
-    const friend = await this.friendRepository.findByUserIdAndFriendId(userId, friendId);
+    const friend = await this.friendRepository.findByUserIdAndFriendId({ userId, friendId });
     if (!friend) {
       throw new NotFoundException('Friend request not found');
     }
@@ -158,6 +154,27 @@ export default class FriendsService {
       status: STATUS.SUCCESS,
       message: 'Friend has been unblocked successfully',
     };
+  }
+
+  private async syncReverseFriendRelation(friendRequest: Friend): Promise<void> {
+    // 나와 상대방의 친구 관계
+    const reverseFriend = await this.friendRepository.findByUserIdAndFriendId({
+      userId: friendRequest.friendId,
+      friendId: friendRequest.userId,
+    });
+
+    // 이미 존재하면 상태 업데이트
+    if (reverseFriend) {
+      await this.friendRepository.update(reverseFriend.id, { status: Status.ACCEPTED });
+      return;
+    }
+
+    // 존재하지 않으면 생성 (수락 상태)
+    await this.friendRepository.create({
+      userId: friendRequest.friendId,
+      friendId: friendRequest.userId,
+      status: Status.ACCEPTED,
+    });
   }
 
   async getFriends(userId: number | undefined): Promise<TypeOf<typeof friendListResponseSchema>> {
