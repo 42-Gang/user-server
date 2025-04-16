@@ -37,8 +37,6 @@ describe('FriendsService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     friendsService = new FriendsService(mockUserRepository, mockFriendRepository);
-    // userRepository는 직접 주입해야 하므로 수동으로 추가
-    (friendsService as any).userRepository = mockUserRepository;
   });
 
   describe('request', () => {
