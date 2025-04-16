@@ -91,21 +91,21 @@ export default async function friendsRoutes(fastify: FastifyInstance) {
         auth: true,
       },
     },
-    // {
-    //   method: 'GET',
-    //   url: '/',
-    //   handler: friendsController.getFriends,
-    //   options: {
-    //     schema: {
-    //       tags: ['friends'],
-    //       description: '친구 리스트',
-    //       response: {
-    //         200: friendResponseSchema,
-    //       },
-    //     },
-    //     auth: true,
-    //   },
-    // },
+    {
+      method: 'GET',
+      url: '/',
+      handler: friendsController.getFriends,
+      options: {
+        schema: {
+          tags: ['friends'],
+          description: '친구 리스트',
+          response: {
+            200: friendResponseSchema,
+          },
+        },
+        auth: true,
+      },
+    },
   ];
 
   await addRoutes(fastify, routes);

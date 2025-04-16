@@ -10,14 +10,16 @@ export const friendRequestSchema = z.object({
 export const friendResponseSchema = createResponseSchema(z.any());
 
 export const friendListResponseSchema = createResponseSchema(
-  z.array(
-    z.object({
-      id: z.number().int(),
-      userId: z.number().int(),
-      friendId: z.number().int(),
-      status: z.nativeEnum(Status),
-    }),
-  ),
+  z.object({
+    friends: z.array(
+      z.object({
+        friend_id: z.number().int(),
+        nickname: z.string().min(2).max(8),
+        avatar: z.string().url(),
+        status: z.nativeEnum(Status),
+      }),
+    ),
+  }),
 );
 
 export const updateFriendParamsSchema = z.object({

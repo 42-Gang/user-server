@@ -7,11 +7,15 @@ import {
   BadRequestException,
 } from '../../common/exceptions/core.error.js';
 import FriendRepositoryInterface from '../../storage/database/interfaces/friend.repository.interface.js';
-import { friendResponseSchema } from './friends.schema.js';
+import { friendResponseSchema, friendListResponseSchema } from './friends.schema.js';
 import { Status, Friend } from '@prisma/client';
+import UserRepositoryInterface from '../../storage/database/interfaces/user.repository.interface.js';
 
 export default class FriendsService {
-  constructor(private readonly friendRepository: FriendRepositoryInterface) {}
+  constructor(
+    private readonly userRepository: UserRepositoryInterface,
+    private readonly friendRepository: FriendRepositoryInterface,
+  ) {}
 
   async request(
     userId: number | undefined,
@@ -156,20 +160,49 @@ export default class FriendsService {
     };
   }
 
-  // async getFriends(userId: number | undefined): Promise<TypeOf<typeof friendListResponseSchema>> {
-  //   if (!userId) {
-  //     throw new NotFoundException('User not found');
-  //   }
-  // const friends = await this.friendRepository.findByUserIdAndStatus(userId, Status.ACCEPTED);
-  // const friendIds = friends.map((f) => f.friendId);
-  // const friendProfiles = await this.userService.findManyByIds(friendIds);
+  async getFriends(userId: number | undefined): Promise<TypeOf<typeof friendListResponseSchema>> {
+    if (!userId) {
+      throw new NotFoundException('User not found');
+    }
+    const acceptedFriends = await this.friendRepository.findAllByUserIdAndStatus(
+      userId,
+      Status.ACCEPTED,
+    );
+    const blockedFriends = await this.friendRepository.findAllByUserIdAndStatus(
+      userId,
+      Status.BLOCKED,
+    );
 
-  // return {
-  //   status: STATUS.SUCCESS,
-  //   message: 'Friend list retrieved successfully',
-  //   data: friendProfiles,
-  // };
-  // }
+    const allFriends = [
+      ...acceptedFriends.map((friend) => ({ friendId: friend.friendId, status: Status.ACCEPTED })),
+      ...blockedFriends.map((friend) => ({ friendId: friend.friendId, status: Status.BLOCKED })),
+    ];
+
+    //친구 데이터 배열로 정리
+    //각 친구 ID에 대해 findById를 사용하여 nickname과 avatar 정보 가져오기
+    const friendsData = await Promise.all(
+      allFriends.map(async ({ friendId, status }) => {
+        const profile = await this.userRepository.findById(friendId);
+        if (!profile) {
+          throw new NotFoundException(`유저 ID ${friendId}를 찾을 수 없습니다`);
+        }
+        return {
+          friend_id: friendId,
+          nickname: profile.nickname,
+          avatar: profile.avatarUrl,
+          status: status,
+        };
+      }),
+    );
+
+    return {
+      status: STATUS.SUCCESS,
+      message: 'Friend list retrieved successfully',
+      data: {
+        friends: friendsData,
+      },
+    };
+  }
 
   // async listRequests()
 
