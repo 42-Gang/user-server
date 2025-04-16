@@ -22,11 +22,11 @@ export default class FriendsService {
     friendId: number,
   ): Promise<TypeOf<typeof friendResponseSchema>> {
     if (!userId) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Sender user not found');
     }
-    const friendUser = await this.userRepository.findById(friendId);
-    if (!friendUser) {
-      throw new NotFoundException('User not found');
+    const recipient = await this.userRepository.findById(friendId);
+    if (!recipient) {
+      throw new NotFoundException('Recipient user not found');
     }
     if (userId == friendId) {
       throw new BadRequestException('');
