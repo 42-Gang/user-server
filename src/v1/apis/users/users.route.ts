@@ -33,7 +33,7 @@ export default async function usersRoutes(fastify: FastifyInstance) {
           },
         },
         auth: false,
-        internal: true,
+        internalOnly: true,
       },
     },
     {
@@ -50,7 +50,7 @@ export default async function usersRoutes(fastify: FastifyInstance) {
           },
         },
         auth: false,
-        internal: true,
+        internalOnly: true,
       },
     },
     {
@@ -115,7 +115,7 @@ export default async function usersRoutes(fastify: FastifyInstance) {
           },
         },
         auth: false,
-        internal: true,
+        internalOnly: true,
       },
     },
   ];
