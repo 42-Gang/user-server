@@ -1,7 +1,8 @@
 import { FriendCacheInterface } from '../../storage/cache/interfaces/friend.cache.interface.js';
-import { friendsSchema } from './friends.schema.js';
+import { friendsSchema, statusSchema } from './friends.schema.js';
 import { TypeOf } from 'zod';
 import FriendRepositoryInterface from '../../storage/database/interfaces/friend.repository.interface.js';
+import { NotFoundException } from '../../common/exceptions/core.error.js';
 
 export default class StatusService {
   constructor(
@@ -18,5 +19,25 @@ export default class StatusService {
     friendsSchema.parse(friends);
     await this.friendCacheRepository.addFriends(userId, friends);
     return friends;
+  }
+
+  async fetchFriendStatus({
+    userId,
+    friendId,
+  }: {
+    userId: number;
+    friendId: number;
+  }): Promise<TypeOf<typeof statusSchema>> {
+    const foundUser = await this.friendRepository.findByUserIdAndFriendId({
+      userId,
+      friendId,
+    });
+    if (!foundUser) {
+      throw new NotFoundException('Friend not found');
+    }
+
+    return {
+      status: foundUser.status,
+    };
   }
 }
