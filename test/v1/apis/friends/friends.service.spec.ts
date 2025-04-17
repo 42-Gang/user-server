@@ -1,14 +1,14 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { STATUS } from '../../../../../src/v1/common/constants/status.js';
+import { STATUS } from '../../../../src/v1/common/constants/status.js';
 import {
   NotFoundException,
   ConflictException,
   BadRequestException,
-} from '../../../../../src/v1/common/exceptions/core.error.js';
+} from '../../../../src/v1/common/exceptions/core.error.js';
 import { Status } from '@prisma/client';
-import FriendRepositoryInterface from '../../../../../src/v1/storage/database/interfaces/friend.repository.interface.js';
-import UserRepositoryInterface from '../../../../../src/v1/storage/database/interfaces/user.repository.interface.js';
-import FriendsService from '../../../../../src/v1/apis/friends/friends.service.js';
+import FriendRepositoryInterface from '../../../../src/v1/storage/database/interfaces/friend.repository.interface.js';
+import UserRepositoryInterface from '../../../../src/v1/storage/database/interfaces/user.repository.interface.js';
+import FriendsService from '../../../../src/v1/apis/friends/friends.service.js';
 
 const mockUserRepository: UserRepositoryInterface = {
   create: vi.fn(),
