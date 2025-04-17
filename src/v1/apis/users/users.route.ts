@@ -31,6 +31,7 @@ export default async function usersRoutes(fastify: FastifyInstance) {
           },
         },
         auth: false,
+        internal: true,
       },
     },
     {
@@ -47,6 +48,7 @@ export default async function usersRoutes(fastify: FastifyInstance) {
           },
         },
         auth: false,
+        internal: true,
       },
     },
     {

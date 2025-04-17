@@ -9,9 +9,11 @@ declare module 'fastify' {
     headers: {
       'X-Authenticated': string | undefined | string[];
       'X-User-Id': string | undefined;
+      'X-Internal': string | undefined;
     };
 
+    internal: boolean;
     authenticated: boolean;
-    userId: number | undefined;
+    userId: number;
   }
 }
