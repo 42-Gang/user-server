@@ -10,6 +10,7 @@ import FriendRepositoryInterface from '../../storage/database/interfaces/friend.
 import { friendResponseSchema } from './friends.schema.js';
 import { Status, Friend } from '@prisma/client';
 import UserRepositoryInterface from '../../storage/database/interfaces/user.repository.interface.js';
+import { sendFriendAddEvent, sendFriendBlockEvent } from '../../kafka/friends/producer.js';
 
 export default class FriendsService {
   constructor(
@@ -41,6 +42,8 @@ export default class FriendsService {
       friendId,
       status: Status.PENDING,
     });
+
+    // 웹소켓으로 요청 발생했다는 이벤트 전송
 
     return {
       status: STATUS.SUCCESS,
@@ -76,6 +79,10 @@ export default class FriendsService {
     // 나와 상대방의 친구 관계를 동기화
     await this.syncReverseFriendRelation(friendRequest);
 
+    // 웹소켓으로 요청 수락했다는 이벤트 전송
+    await sendFriendAddEvent({ userAId: userId, userBId: senderId });
+    await sendFriendAddEvent({ userAId: senderId, userBId: userId });
+
     return {
       status: STATUS.SUCCESS,
       message: '친구 요청을 수락했습니다.',
@@ -104,6 +111,8 @@ export default class FriendsService {
       status: Status.REJECTED,
     });
 
+    // 웹소켓으로 요청 거절했다는 이벤트 전송
+
     return {
       status: STATUS.SUCCESS,
       message: 'Friend request rejected successfully',
@@ -127,6 +136,8 @@ export default class FriendsService {
 
     await this.friendRepository.update(friend.id, { status: Status.BLOCKED });
 
+    await sendFriendBlockEvent({ userAId: userId, userBId: friendId, status: 'BLOCKED' });
+
     return {
       status: STATUS.SUCCESS,
       message: 'Friend has been blocked successfully',
@@ -149,6 +160,8 @@ export default class FriendsService {
     }
 
     await this.friendRepository.update(friend.id, { status: Status.ACCEPTED });
+
+    await sendFriendBlockEvent({ userAId: userId, userBId: friendId, status: 'UNBLOCKED' });
 
     return {
       status: STATUS.SUCCESS,
