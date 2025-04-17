@@ -323,57 +323,114 @@ describe('FriendsService', () => {
   });
 
   describe('unblock', () => {
-    describe('unblock', () => {
-      it('정상적인 친구 차단 해제를 처리해야 함', async () => {
-        const mockBlockedFriend = {
-          id: 1,
-          userId: 1,
-          friendId: 2,
-          status: Status.BLOCKED,
-        };
-
-        (
-          mockFriendRepository.findByUserIdAndFriendId as ReturnType<typeof vi.fn>
-        ).mockResolvedValue(mockBlockedFriend);
-
-        (mockFriendRepository.update as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
-
-        const result = await friendsService.unblock(1, 2);
-
-        expect(result).toEqual({
-          status: STATUS.SUCCESS,
-          message: 'Friend has been unblocked successfully',
-        });
+    it('정상적인 친구 차단 해제를 처리해야 함', async () => {
+      const mockBlockedFriend = {
+        id: 1,
+        userId: 1,
+        friendId: 2,
+        status: Status.BLOCKED,
+      };
+      (
+        mockFriendRepository.findByUserIdAndFriendId as ReturnType<typeof vi.fn>
+      ).mockResolvedValue(mockBlockedFriend);
+      (mockFriendRepository.update as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+      const result = await friendsService.unblock(1, 2);
+      expect(result).toEqual({
+        status: STATUS.SUCCESS,
+        message: 'Friend has been unblocked successfully',
       });
+    });
+    it('userId가 undefined이면 예외를 던져야 함', async () => {
+      await expect(friendsService.unblock(undefined, 2)).rejects.toThrowError('User not found');
+    });
+    it('친구 관계가 없으면 예외를 던져야 함', async () => {
+      (
+        mockFriendRepository.findByUserIdAndFriendId as ReturnType<typeof vi.fn>
+      ).mockResolvedValue(null);
+      await expect(friendsService.unblock(1, 2)).rejects.toThrowError('Friend request not found');
+    });
+    it('친구 상태가 BLOCKED가 아니면 예외를 던져야 함', async () => {
+      const acceptedFriend = {
+        id: 1,
+        userId: 1,
+        friendId: 2,
+        status: Status.ACCEPTED,
+      };
+      (
+        mockFriendRepository.findByUserIdAndFriendId as ReturnType<typeof vi.fn>
+      ).mockResolvedValue(acceptedFriend);
+      await expect(friendsService.unblock(1, 2)).rejects.toThrowError(
+        'Only blocked friends can be unblocked',
+      );
+    });
+  });
 
-      it('userId가 undefined이면 예외를 던져야 함', async () => {
-        await expect(friendsService.unblock(undefined, 2)).rejects.toThrowError('User not found');
+  describe('getFriends', () => {
+    it('userId가 undefined면 NotFoundException을 던져야 함', async () => {
+      await expect(friendsService.getFriends(undefined)).rejects.toThrow(NotFoundException);
+    });
+  
+    it('친구 목록을 정상적으로 반환해야 함', async () => {
+      const userId = 1;
+  
+      mockFriendRepository.findAllByUserIdAndStatus.mockImplementation((userId, status) => {
+        if (status === Status.ACCEPTED) return [{ friendId: 2 }];
+        if (status === Status.BLOCKED) return [{ friendId: 3 }];
       });
-
-      it('친구 관계가 없으면 예외를 던져야 함', async () => {
-        (
-          mockFriendRepository.findByUserIdAndFriendId as ReturnType<typeof vi.fn>
-        ).mockResolvedValue(null);
-
-        await expect(friendsService.unblock(1, 2)).rejects.toThrowError('Friend request not found');
+  
+      mockUserRepository.findById.mockImplementation((id) => {
+        if (id === 2) {
+          return {
+            id: 2,
+            nickname: 'AcceptedUser',
+            avatarUrl: 'https://example.com/accepted.jpg',
+          };
+        }
+        if (id === 3) {
+          return {
+            id: 3,
+            nickname: 'BlockedUser',
+            avatarUrl: 'https://example.com/blocked.jpg',
+          };
+        }
       });
-
-      it('친구 상태가 BLOCKED가 아니면 예외를 던져야 함', async () => {
-        const acceptedFriend = {
-          id: 1,
-          userId: 1,
-          friendId: 2,
-          status: Status.ACCEPTED,
-        };
-
-        (
-          mockFriendRepository.findByUserIdAndFriendId as ReturnType<typeof vi.fn>
-        ).mockResolvedValue(acceptedFriend);
-
-        await expect(friendsService.unblock(1, 2)).rejects.toThrowError(
-          'Only blocked friends can be unblocked',
-        );
+  
+      const result = await friendsService.getFriends(userId);
+  
+      expect(result).toEqual({
+        status: STATUS.SUCCESS,
+        message: 'Friend list retrieved successfully',
+        data: {
+          friends: [
+            {
+              friend_id: 2,
+              nickname: 'AcceptedUser',
+              avatar_url: 'https://example.com/accepted.jpg',
+              status: Status.ACCEPTED,
+            },
+            {
+              friend_id: 3,
+              nickname: 'BlockedUser',
+              avatar_url: 'https://example.com/blocked.jpg',
+              status: Status.BLOCKED,
+            },
+          ],
+        },
       });
+  
+      expect(mockFriendRepository.findAllByUserIdAndStatus).toHaveBeenCalledTimes(2);
+      expect(mockUserRepository.findById).toHaveBeenCalledTimes(2);
+    });
+  
+    it('userRepository에서 프로필 못 찾으면 NotFoundException을 던져야 함', async () => {
+      const userId = 1;
+  
+      mockFriendRepository.findAllByUserIdAndStatus.mockReturnValue([{ friendId: 999 }]);
+      mockUserRepository.findById.mockReturnValue(null); // 프로필 없음
+  
+      await expect(friendsService.getFriends(userId)).rejects.toThrow(
+        new NotFoundException(`유저 ID 999를 찾을 수 없습니다`),
+      );
     });
   });
 });

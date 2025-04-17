@@ -206,7 +206,7 @@ export default class FriendsService {
         return {
           friend_id: friendId,
           nickname: profile.nickname,
-          avatar: profile.avatarUrl,
+          avatar_url: profile.avatarUrl,
           status: status,
         };
       }),
