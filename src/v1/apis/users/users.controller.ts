@@ -6,6 +6,8 @@ import { getUserParamsSchema, getUserResponseSchema } from './schemas/getUser.sc
 import { editNicknameInputSchema } from './schemas/editNickname.schema.js';
 import { searchUserParamsSchema } from './schemas/searchUser.schema.js';
 import { authenticateUserInputSchema } from './schemas/authenticateUser.schema.js';
+import { checkDuplicatedEmailParamsSchema } from './schemas/check-duplicated-email.schema.js';
+import { STATUS } from '../../common/constants/status.js';
 
 export default class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -39,5 +41,14 @@ export default class UsersController {
     const params = searchUserParamsSchema.parse(request.params);
     const result = await this.usersService.searchUser(params.nickname);
     reply.code(200).send(result);
+  };
+
+  checkDuplicatedEmail = async (request: FastifyRequest, reply: FastifyReply) => {
+    const params = checkDuplicatedEmailParamsSchema.parse(request.params);
+    await this.usersService.checkDuplicatedEmail(params.email);
+    reply.code(200).send({
+      status: STATUS.SUCCESS,
+      message: '이메일이 중복되지 않았습니다.',
+    });
   };
 }

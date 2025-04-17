@@ -105,4 +105,13 @@ export default class UsersService {
       data: users,
     };
   }
+
+  async checkDuplicatedEmail(email: string): Promise<boolean> {
+    const foundEmail = await this.userRepository.findByEmail(email);
+    if (foundEmail) {
+      throw new ConflictException('이미 존재하는 이메일입니다.');
+    }
+
+    return true;
+  }
 }

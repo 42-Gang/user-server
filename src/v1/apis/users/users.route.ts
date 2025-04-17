@@ -13,6 +13,8 @@ import {
   authenticateUserInputSchema,
   authenticateUserResponseSchema,
 } from './schemas/authenticateUser.schema.js';
+import { coreResponseSchema } from '../../common/schema/core.schema.js';
+import { checkDuplicatedEmailParamsSchema } from './schemas/check-duplicated-email.schema.js';
 
 export default async function usersRoutes(fastify: FastifyInstance) {
   const usersController: UsersController = fastify.diContainer.resolve('usersController');
@@ -97,6 +99,23 @@ export default async function usersRoutes(fastify: FastifyInstance) {
           },
         },
         auth: true,
+      },
+    },
+    {
+      method: 'GET',
+      url: '/check-email/:email',
+      handler: usersController.checkDuplicatedEmail,
+      options: {
+        schema: {
+          tags: ['users'],
+          description: '이메일 중복 체크',
+          params: checkDuplicatedEmailParamsSchema,
+          response: {
+            200: coreResponseSchema,
+          },
+        },
+        auth: false,
+        internal: true,
       },
     },
   ];
