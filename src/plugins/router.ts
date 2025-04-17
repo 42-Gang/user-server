@@ -1,6 +1,5 @@
 import { RouteShorthandOptions, RouteHandlerMethod } from 'fastify';
 import { FastifyInstance } from 'fastify/types/instance.js';
-import { STATUS } from '../v1/common/constants/status.js';
 
 // 권한 필요 여부를 표현할 때 추가 옵션 타입 확장
 interface RouteOptions extends RouteShorthandOptions {
@@ -24,15 +23,7 @@ export async function addRoutes(fastify: FastifyInstance, routes: Route[]) {
         url: route.url,
         handler: route.handler,
         schema: route.options.schema,
-        onRequest: (request, reply, done) => {
-          if (request.internal == false) {
-            return reply.status(403).send({
-              status: STATUS.ERROR,
-              message: 'Forbidden',
-            });
-          }
-          done();
-        },
+        onRequest: fastify.internalOnly,
       });
       return;
     }
