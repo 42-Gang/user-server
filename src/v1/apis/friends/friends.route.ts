@@ -6,6 +6,7 @@ import {
   friendResponseSchema,
   updateFriendParamsSchema,
 } from './friends.schema.js';
+import { getFriendsQuerySchema } from './schemas/getFriends.schema.js';
 
 export default async function friendsRoutes(fastify: FastifyInstance) {
   const friendsController: FriendsController = fastify.diContainer.resolve('friendsController');
@@ -93,12 +94,13 @@ export default async function friendsRoutes(fastify: FastifyInstance) {
     },
     {
       method: 'GET',
-      url: '/',
+      url: '/me',
       handler: friendsController.getFriends,
       options: {
         schema: {
           tags: ['friends'],
           description: '친구 리스트',
+          querystring: getFriendsQuerySchema,
           response: {
             200: friendResponseSchema,
           },

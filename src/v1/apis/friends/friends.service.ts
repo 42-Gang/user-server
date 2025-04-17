@@ -7,7 +7,8 @@ import {
   BadRequestException,
 } from '../../common/exceptions/core.error.js';
 import FriendRepositoryInterface from '../../storage/database/interfaces/friend.repository.interface.js';
-import { friendResponseSchema, friendListResponseSchema } from './friends.schema.js';
+import { friendResponseSchema } from './friends.schema.js';
+import { friendListResponseSchema } from './schemas/getFriends.schema.js';
 import { Status, Friend } from '@prisma/client';
 import UserRepositoryInterface from '../../storage/database/interfaces/user.repository.interface.js';
 
@@ -177,26 +178,32 @@ export default class FriendsService {
     });
   }
 
-  async getFriends(userId: number | undefined): Promise<TypeOf<typeof friendListResponseSchema>> {
+  async getFriends(
+    userId: number | undefined,
+    statuses: Status[] | undefined,
+  ): Promise<TypeOf<typeof friendListResponseSchema>> {
     if (!userId) {
       throw new NotFoundException('User not found');
     }
-    const acceptedFriends = await this.friendRepository.findAllByUserIdAndStatus(
-      userId,
-      Status.ACCEPTED,
-    );
-    const blockedFriends = await this.friendRepository.findAllByUserIdAndStatus(
-      userId,
-      Status.BLOCKED,
-    );
 
-    const allFriends = [
-      ...acceptedFriends.map((friend) => ({ friendId: friend.friendId, status: Status.ACCEPTED })),
-      ...blockedFriends.map((friend) => ({ friendId: friend.friendId, status: Status.BLOCKED })),
-    ];
+    const targetStatuses =
+      statuses && statuses.length > 0
+        ? statuses
+        : [Status.ACCEPTED, Status.BLOCKED, Status.REJECTED, Status.PENDING];
 
-    //친구 데이터 배열로 정리
-    //각 친구 ID에 대해 findById를 사용하여 nickname과 avatar 정보 가져오기
+    const allFriends = (
+      await Promise.all(
+        targetStatuses.map((status) =>
+          this.friendRepository.findAllByUserIdAndStatus(userId, status).then((friends) =>
+            friends.map((f) => ({
+              friendId: f.friendId,
+              status,
+            })),
+          ),
+        ),
+      )
+    ).flat();
+
     const friendsData = await Promise.all(
       allFriends.map(async ({ friendId, status }) => {
         const profile = await this.userRepository.findById(friendId);
@@ -207,7 +214,7 @@ export default class FriendsService {
           friend_id: friendId,
           nickname: profile.nickname,
           avatar_url: profile.avatarUrl,
-          status: status,
+          status,
         };
       }),
     );

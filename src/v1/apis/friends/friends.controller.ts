@@ -1,6 +1,7 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import FriendsService from './friends.service.js';
 import { friendRequestSchema, updateFriendParamsSchema } from './friends.schema.js';
+import { getFriendsQuerySchema } from './schemas/getFriends.schema.js';
 
 export default class FriendsController {
   constructor(private readonly friendsService: FriendsService) {}
@@ -36,7 +37,8 @@ export default class FriendsController {
   };
 
   getFriends = async (request: FastifyRequest, reply: FastifyReply) => {
-    const result = await this.friendsService.getFriends(request.userId);
+    const parsed = getFriendsQuerySchema.parse(request.query);
+    const result = await this.friendsService.getFriends(request.userId, parsed.status ?? []);
     reply.status(200).send(result);
   };
 }
