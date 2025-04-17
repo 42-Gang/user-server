@@ -28,16 +28,16 @@ export default class StatusService {
     userId: number;
     friendId: number;
   }): Promise<TypeOf<typeof statusSchema>> {
-    const foundUser = await this.friendRepository.findByUserIdAndFriendId({
+    const foundFriend = await this.friendRepository.findByUserIdAndFriendId({
       userId,
       friendId,
     });
-    if (!foundUser) {
+    if (!foundFriend) {
       throw new NotFoundException('Friend not found');
     }
 
     return {
-      status: foundUser.status,
+      status: foundFriend.status,
     };
   }
 }
