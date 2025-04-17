@@ -1,11 +1,11 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 
 import UsersService from './users.service.js';
-import { createUserInputSchema } from './schemas/createUser.schema.js';
-import { getUserParamsSchema, getUserResponseSchema } from './schemas/getUser.schema.js';
-import { editNicknameInputSchema } from './schemas/editNickname.schema.js';
-import { searchUserParamsSchema } from './schemas/searchUser.schema.js';
-import { authenticateUserInputSchema } from './schemas/authenticateUser.schema.js';
+import { createUserInputSchema } from './schemas/create-user.schema.js';
+import { getUserParamsSchema, getUserResponseSchema } from './schemas/get-user.schema.js';
+import { editNicknameInputSchema } from './schemas/edit-nickname.schema.js';
+import { searchUserParamsSchema } from './schemas/search-user.schema.js';
+import { authenticateUserInputSchema } from './schemas/authenticate-user.schema.js';
 import { checkDuplicatedEmailParamsSchema } from './schemas/check-duplicated-email.schema.js';
 import { STATUS } from '../../common/constants/status.js';
 

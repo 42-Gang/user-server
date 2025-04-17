@@ -2,17 +2,17 @@ import { FastifyInstance } from 'fastify';
 
 import { addRoutes, Route } from '../../../plugins/router.js';
 import UsersController from './users.controller.js';
-import { createUserInputSchema, createUserResponseSchema } from './schemas/createUser.schema.js';
-import { getUserParamsSchema, getUserResponseSchema } from './schemas/getUser.schema.js';
+import { createUserInputSchema, createUserResponseSchema } from './schemas/create-user.schema.js';
+import { getUserParamsSchema, getUserResponseSchema } from './schemas/get-user.schema.js';
 import {
   editNicknameInputSchema,
   editNicknameResponseSchema,
-} from './schemas/editNickname.schema.js';
-import { searchUserParamsSchema, searchUserResponseSchema } from './schemas/searchUser.schema.js';
+} from './schemas/edit-nickname.schema.js';
+import { searchUserParamsSchema, searchUserResponseSchema } from './schemas/search-user.schema.js';
 import {
   authenticateUserInputSchema,
   authenticateUserResponseSchema,
-} from './schemas/authenticateUser.schema.js';
+} from './schemas/authenticate-user.schema.js';
 import { coreResponseSchema } from '../../common/schema/core.schema.js';
 import { checkDuplicatedEmailParamsSchema } from './schemas/check-duplicated-email.schema.js';
 

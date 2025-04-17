@@ -7,17 +7,17 @@ import { TypeOf } from 'zod';
 import { STATUS } from '../../common/constants/status.js';
 import UserRepositoryInterface from '../../storage/database/interfaces/user.repository.interface.js';
 import bcrypt from 'bcrypt';
-import { createUserInputSchema, createUserResponseSchema } from './schemas/createUser.schema.js';
-import { getUserResponseSchema } from './schemas/getUser.schema.js';
+import { createUserInputSchema, createUserResponseSchema } from './schemas/create-user.schema.js';
+import { getUserResponseSchema } from './schemas/get-user.schema.js';
 import {
   editNicknameInputSchema,
   editNicknameResponseSchema,
-} from './schemas/editNickname.schema.js';
-import { searchUserResponseSchema } from './schemas/searchUser.schema.js';
+} from './schemas/edit-nickname.schema.js';
+import { searchUserResponseSchema } from './schemas/search-user.schema.js';
 import {
   authenticateUserInputSchema,
   authenticateUserResponseSchema,
-} from './schemas/authenticateUser.schema.js';
+} from './schemas/authenticate-user.schema.js';
 
 export default class UsersService {
   constructor(
