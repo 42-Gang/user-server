@@ -5,10 +5,13 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  UnAuthorizedException,
 } from '../../common/exceptions/core.error.js';
 import FriendRepositoryInterface from '../../storage/database/interfaces/friend.repository.interface.js';
 import { friendResponseSchema } from './friends.schema.js';
-import { friendListResponseSchema } from './schemas/getFriends.schema.js';
+import { friendListResponseSchema } from './schemas/get-friends.schema.js';
+import { getRequestsResponseSchema } from './schemas/get-requests.schema.js';
+import { getStatusQuerySchema } from './schemas/get-status.schema.js';
 import { Status, Friend } from '@prisma/client';
 import UserRepositoryInterface from '../../storage/database/interfaces/user.repository.interface.js';
 
@@ -157,27 +160,6 @@ export default class FriendsService {
     };
   }
 
-  private async syncReverseFriendRelation(friendRequest: Friend): Promise<void> {
-    // 나와 상대방의 친구 관계
-    const reverseFriend = await this.friendRepository.findByUserIdAndFriendId({
-      userId: friendRequest.friendId,
-      friendId: friendRequest.userId,
-    });
-
-    // 이미 존재하면 상태 업데이트
-    if (reverseFriend) {
-      await this.friendRepository.update(reverseFriend.id, { status: Status.ACCEPTED });
-      return;
-    }
-
-    // 존재하지 않으면 생성 (수락 상태)
-    await this.friendRepository.create({
-      userId: friendRequest.friendId,
-      friendId: friendRequest.userId,
-      status: Status.ACCEPTED,
-    });
-  }
-
   async getFriends(
     userId: number | undefined,
     statuses: Status[] | undefined,
@@ -228,8 +210,87 @@ export default class FriendsService {
     };
   }
 
-  // async listRequests()
+  async getRequests(userId: number | undefined): Promise<TypeOf<typeof getRequestsResponseSchema>> {
+    if (!userId) {
+      throw new NotFoundException('User not found');
+    }
 
-  //Friend List의 돋보기 필드->인풋 검증 스키마 필요 string
-  //ADD Friendvlfem->->인풋 검증 스키마 필요 string
+    const allRequests = await this.friendRepository.findAllByFriendIdAndStatus(
+      userId,
+      Status.PENDING,
+    );
+
+    const requestsData = await Promise.all(
+      allRequests.map(async ({ userId }) => {
+        const profile = await this.userRepository.findById(userId);
+        if (!profile) {
+          throw new NotFoundException(`유저 ID ${userId}를 찾을 수 없습니다`);
+        }
+        return {
+          user_id: userId,
+          nickname: profile.nickname,
+          avatar_url: profile.avatarUrl,
+        };
+      }),
+    );
+
+    return {
+      status: STATUS.SUCCESS,
+      message: 'Friend requests retrieved successfully',
+      data: {
+        requests: requestsData,
+      },
+    };
+  }
+
+  //다음 커밋 때 internal로 수정하면 좋을 듯 합니다
+  async getStatus(
+    userId: number | undefined,
+    parsed: TypeOf<typeof getStatusQuerySchema>,
+  ): Promise<TypeOf<typeof friendResponseSchema>> {
+    if (!userId) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (userId !== parsed.user_id) {
+      throw new UnAuthorizedException('이 작업을 수행할 권한이 없습니다');
+    }
+
+    const friend = await this.friendRepository.findByUserIdAndFriendId({
+      userId,
+      friendId: parsed.friend_id,
+    });
+    if (!friend) {
+      throw new NotFoundException('친구 관계를 찾을 수 없습니다.');
+    }
+
+    return {
+      status: STATUS.SUCCESS,
+      message: 'Friend status retrieved successfully',
+      data: {
+        status: friend.status,
+      },
+    };
+  }
+
+  private async syncReverseFriendRelation(friendRequest: Friend): Promise<void> {
+    // 나와 상대방의 친구 관계
+    const reverseFriend = await this.friendRepository.findByUserIdAndFriendId({
+      userId: friendRequest.friendId,
+      friendId: friendRequest.userId,
+    });
+
+    // 이미 존재하면 상태 업데이트
+    if (reverseFriend) {
+      await this.friendRepository.update(reverseFriend.id, { status: Status.ACCEPTED });
+      return;
+    }
+
+    // 존재하지 않으면 생성 (수락 상태)
+    await this.friendRepository.create({
+      userId: friendRequest.friendId,
+      friendId: friendRequest.userId,
+      status: Status.ACCEPTED,
+    });
+  }
 }
