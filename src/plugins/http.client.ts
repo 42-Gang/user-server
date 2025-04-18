@@ -8,7 +8,7 @@ interface HttpRequestOptions {
   headers?: Record<string, string>;
 }
 
-class GotClient {
+export class GotClient {
   client: Got;
 
   constructor(options?: ExtendOptions) {
@@ -29,4 +29,8 @@ class GotClient {
   }
 }
 
-export const gotClient = new GotClient();
+export const gotClient = new GotClient({
+  get throwHttpErrors() {
+    return false;
+  },
+});

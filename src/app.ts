@@ -23,7 +23,7 @@ function setErrorHandler(fastify: FastifyInstance) {
 }
 
 function setMiddleware(fastify: FastifyInstance) {
-  fastify.addHook('onRequest', async (request, reply) => {
+  fastify.addHook('onRequest', async (request, _reply) => {
     const internal = request.headers['x-internal'];
     const authenticated = request.headers['x-authenticated'];
     const userId = request.headers['x-user-id'];
@@ -59,15 +59,6 @@ function setDecorate(fastify: FastifyInstance) {
       reply.code(401).send({
         status: STATUS.ERROR,
         message: 'Unauthorized',
-      });
-    }
-  });
-
-  fastify.decorate('internalOnly', async (request: FastifyRequest, reply: FastifyReply) => {
-    if (!request.internal) {
-      return reply.status(403).send({
-        status: STATUS.ERROR,
-        message: 'Forbidden',
       });
     }
   });

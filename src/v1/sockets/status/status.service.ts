@@ -1,33 +1,43 @@
 import { FriendCacheInterface } from '../../storage/cache/interfaces/friend.cache.interface.js';
-import { friendsSchema } from './friends.schema.js';
+import { friendsSchema, statusSchema } from './friends.schema.js';
 import { TypeOf } from 'zod';
-import { gotClient } from '../../../plugins/http.client.js';
-import * as console from 'node:console';
+import FriendRepositoryInterface from '../../storage/database/interfaces/friend.repository.interface.js';
+import { NotFoundException } from '../../common/exceptions/core.error.js';
 
 export default class StatusService {
-  constructor(private readonly friendCacheRepository: FriendCacheInterface) {}
+  constructor(
+    private readonly friendCacheRepository: FriendCacheInterface,
+    private readonly friendRepository: FriendRepositoryInterface,
+  ) {}
 
   async fetchFriends(userId: number): Promise<TypeOf<typeof friendsSchema>> {
-    const cachedFriends = await this.friendCacheRepository.getFriends(userId);
-    if (cachedFriends?.length) return cachedFriends;
+    // const cachedFriends = await this.friendCacheRepository.getFriends(userId);
+    // if (cachedFriends?.length) return cachedFriends;
 
-    // 나를 block 한 친구는 제외하고 가져오기 (추가)
-    const response = await gotClient.request<{
-      data: { friends: { id: number; friendId: number; nickname: string }[] };
-    }>({
-      method: 'GET',
-      url: `http://localhost:8080/api/v1/friends/${userId}`,
-      headers: {
-        'X-Authenticated': 'true',
-        'X-User-Id': userId.toString(),
-      },
-    });
-
-    const friends = response.body.data.friends ?? [];
-    console.log('friends', friends);
+    const friends = await this.friendRepository.findAllByUserIdAndStatus(userId, 'ACCEPTED');
 
     friendsSchema.parse(friends);
     await this.friendCacheRepository.addFriends(userId, friends);
     return friends;
+  }
+
+  async fetchFriendStatus({
+    userId,
+    friendId,
+  }: {
+    userId: number;
+    friendId: number;
+  }): Promise<TypeOf<typeof statusSchema>> {
+    const foundFriend = await this.friendRepository.findByUserIdAndFriendId({
+      userId,
+      friendId,
+    });
+    if (!foundFriend) {
+      throw new NotFoundException('Friend not found');
+    }
+
+    return {
+      status: foundFriend.status,
+    };
   }
 }

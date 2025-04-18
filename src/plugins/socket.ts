@@ -11,6 +11,7 @@ export function createSocketServer(fastify: FastifyInstance) {
     },
   });
   socket.logger = fastify.log;
+  socket.diContainer = fastify.diContainer;
 
   const pubClient = redis;
   const subClient = pubClient.duplicate();
