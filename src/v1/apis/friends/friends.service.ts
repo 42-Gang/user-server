@@ -5,9 +5,13 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  UnAuthorizedException,
 } from '../../common/exceptions/core.error.js';
 import FriendRepositoryInterface from '../../storage/database/interfaces/friend.repository.interface.js';
 import { friendResponseSchema } from './friends.schema.js';
+import { friendListResponseSchema } from './schemas/get-friends.schema.js';
+import { getRequestsResponseSchema } from './schemas/get-requests.schema.js';
+import { getStatusQuerySchema } from './schemas/get-status.schema.js';
 import { Status, Friend } from '@prisma/client';
 import UserRepositoryInterface from '../../storage/database/interfaces/user.repository.interface.js';
 
@@ -89,18 +93,18 @@ export default class FriendsService {
     if (!userId) {
       throw new NotFoundException('User not found');
     }
-    const friend = await this.friendRepository.findByUserIdAndFriendId({
+    const friendRequest = await this.friendRepository.findByUserIdAndFriendId({
       userId: sender,
       friendId: userId,
     });
-    if (!friend) {
+    if (!friendRequest) {
       throw new NotFoundException('Friend request not found');
     }
-    if (friend.status !== Status.PENDING) {
+    if (friendRequest.status !== Status.PENDING) {
       throw new ConflictException('Only pending requests can be rejected');
     }
 
-    await this.friendRepository.update(friend.id, {
+    await this.friendRepository.update(friendRequest.id, {
       status: Status.REJECTED,
     });
 
@@ -156,6 +160,119 @@ export default class FriendsService {
     };
   }
 
+  async getFriends(
+    userId: number | undefined,
+    statuses: Status[] | undefined,
+  ): Promise<TypeOf<typeof friendListResponseSchema>> {
+    if (!userId) {
+      throw new NotFoundException('User not found');
+    }
+
+    const targetStatuses =
+      statuses && statuses.length > 0
+        ? statuses
+        : [Status.ACCEPTED, Status.BLOCKED, Status.REJECTED, Status.PENDING];
+
+    const allFriends = (
+      await Promise.all(
+        targetStatuses.map((status) =>
+          this.friendRepository.findAllByUserIdAndStatus(userId, status).then((friends) =>
+            friends.map((f) => ({
+              friendId: f.friendId,
+              status,
+            })),
+          ),
+        ),
+      )
+    ).flat();
+
+    const friendsData = await Promise.all(
+      allFriends.map(async ({ friendId, status }) => {
+        const profile = await this.userRepository.findById(friendId);
+        if (!profile) {
+          throw new NotFoundException(`유저 ID ${friendId}를 찾을 수 없습니다`);
+        }
+        return {
+          friend_id: friendId,
+          nickname: profile.nickname,
+          avatar_url: profile.avatarUrl,
+          status,
+        };
+      }),
+    );
+
+    return {
+      status: STATUS.SUCCESS,
+      message: 'Friend list retrieved successfully',
+      data: {
+        friends: friendsData,
+      },
+    };
+  }
+
+  async getRequests(userId: number | undefined): Promise<TypeOf<typeof getRequestsResponseSchema>> {
+    if (!userId) {
+      throw new NotFoundException('User not found');
+    }
+
+    const allRequests = await this.friendRepository.findAllByFriendIdAndStatus(
+      userId,
+      Status.PENDING,
+    );
+
+    const requestsData = await Promise.all(
+      allRequests.map(async ({ userId }) => {
+        const profile = await this.userRepository.findById(userId);
+        if (!profile) {
+          throw new NotFoundException(`유저 ID ${userId}를 찾을 수 없습니다`);
+        }
+        return {
+          user_id: userId,
+          nickname: profile.nickname,
+          avatar_url: profile.avatarUrl,
+        };
+      }),
+    );
+
+    return {
+      status: STATUS.SUCCESS,
+      message: 'Friend requests retrieved successfully',
+      data: {
+        requests: requestsData,
+      },
+    };
+  }
+
+  //다음 커밋 때 internal로 수정하면 좋을 듯 합니다
+  async getStatus(
+    userId: number | undefined,
+    parsed: TypeOf<typeof getStatusQuerySchema>,
+  ): Promise<TypeOf<typeof friendResponseSchema>> {
+    if (!userId) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (userId !== parsed.user_id) {
+      throw new UnAuthorizedException('이 작업을 수행할 권한이 없습니다');
+    }
+
+    const friend = await this.friendRepository.findByUserIdAndFriendId({
+      userId,
+      friendId: parsed.friend_id,
+    });
+    if (!friend) {
+      throw new NotFoundException('친구 관계를 찾을 수 없습니다.');
+    }
+
+    return {
+      status: STATUS.SUCCESS,
+      message: 'Friend status retrieved successfully',
+      data: {
+        status: friend.status,
+      },
+    };
+  }
+
   private async syncReverseFriendRelation(friendRequest: Friend): Promise<void> {
     // 나와 상대방의 친구 관계
     const reverseFriend = await this.friendRepository.findByUserIdAndFriendId({
@@ -176,24 +293,4 @@ export default class FriendsService {
       status: Status.ACCEPTED,
     });
   }
-
-  // async getFriends(userId: number | undefined): Promise<TypeOf<typeof friendListResponseSchema>> {
-  //   if (!userId) {
-  //     throw new NotFoundException('User not found');
-  //   }
-  // const friends = await this.friendRepository.findByUserIdAndStatus(userId, Status.ACCEPTED);
-  // const friendIds = friends.map((f) => f.friendId);
-  // const friendProfiles = await this.userService.findManyByIds(friendIds);
-
-  // return {
-  //   status: STATUS.SUCCESS,
-  //   message: 'Friend list retrieved successfully',
-  //   data: friendProfiles,
-  // };
-  // }
-
-  // async listRequests()
-
-  //Friend List의 돋보기 필드->인풋 검증 스키마 필요 string
-  //ADD Friendvlfem->->인풋 검증 스키마 필요 string
 }
