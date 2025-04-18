@@ -7,17 +7,17 @@ import { TypeOf } from 'zod';
 import { STATUS } from '../../common/constants/status.js';
 import UserRepositoryInterface from '../../storage/database/interfaces/user.repository.interface.js';
 import bcrypt from 'bcrypt';
-import { createUserInputSchema, createUserResponseSchema } from './schemas/createUser.schema.js';
-import { getUserResponseSchema } from './schemas/getUser.schema.js';
+import { createUserInputSchema, createUserResponseSchema } from './schemas/create-user.schema.js';
+import { getUserResponseSchema } from './schemas/get-user.schema.js';
 import {
   editNicknameInputSchema,
   editNicknameResponseSchema,
-} from './schemas/editNickname.schema.js';
-import { searchUserResponseSchema } from './schemas/searchUser.schema.js';
+} from './schemas/edit-nickname.schema.js';
+import { searchUserResponseSchema } from './schemas/search-user.schema.js';
 import {
   authenticateUserInputSchema,
   authenticateUserResponseSchema,
-} from './schemas/authenticateUser.schema.js';
+} from './schemas/authenticate-user.schema.js';
 
 export default class UsersService {
   constructor(
@@ -104,5 +104,14 @@ export default class UsersService {
       status: STATUS.SUCCESS,
       data: users,
     };
+  }
+
+  async checkDuplicatedEmail(email: string): Promise<boolean> {
+    const foundEmail = await this.userRepository.findByEmail(email);
+    if (foundEmail) {
+      throw new ConflictException('이미 존재하는 이메일입니다.');
+    }
+
+    return true;
   }
 }

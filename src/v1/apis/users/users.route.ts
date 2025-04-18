@@ -2,17 +2,19 @@ import { FastifyInstance } from 'fastify';
 
 import { addRoutes, Route } from '../../../plugins/router.js';
 import UsersController from './users.controller.js';
-import { createUserInputSchema, createUserResponseSchema } from './schemas/createUser.schema.js';
-import { getUserParamsSchema, getUserResponseSchema } from './schemas/getUser.schema.js';
+import { createUserInputSchema, createUserResponseSchema } from './schemas/create-user.schema.js';
+import { getUserParamsSchema, getUserResponseSchema } from './schemas/get-user.schema.js';
 import {
   editNicknameInputSchema,
   editNicknameResponseSchema,
-} from './schemas/editNickname.schema.js';
-import { searchUserParamsSchema, searchUserResponseSchema } from './schemas/searchUser.schema.js';
+} from './schemas/edit-nickname.schema.js';
+import { searchUserParamsSchema, searchUserResponseSchema } from './schemas/search-user.schema.js';
 import {
   authenticateUserInputSchema,
   authenticateUserResponseSchema,
-} from './schemas/authenticateUser.schema.js';
+} from './schemas/authenticate-user.schema.js';
+import { coreResponseSchema } from '../../common/schema/core.schema.js';
+import { checkDuplicatedEmailParamsSchema } from './schemas/check-duplicated-email.schema.js';
 
 export default async function usersRoutes(fastify: FastifyInstance) {
   const usersController: UsersController = fastify.diContainer.resolve('usersController');
@@ -31,6 +33,7 @@ export default async function usersRoutes(fastify: FastifyInstance) {
           },
         },
         auth: false,
+        internalOnly: true,
       },
     },
     {
@@ -47,6 +50,7 @@ export default async function usersRoutes(fastify: FastifyInstance) {
           },
         },
         auth: false,
+        internalOnly: true,
       },
     },
     {
@@ -95,6 +99,23 @@ export default async function usersRoutes(fastify: FastifyInstance) {
           },
         },
         auth: true,
+      },
+    },
+    {
+      method: 'GET',
+      url: '/check-email/:email',
+      handler: usersController.checkDuplicatedEmail,
+      options: {
+        schema: {
+          tags: ['users'],
+          description: '이메일 중복 체크',
+          params: checkDuplicatedEmailParamsSchema,
+          response: {
+            200: coreResponseSchema,
+          },
+        },
+        auth: false,
+        internalOnly: true,
       },
     },
   ];

@@ -23,33 +23,32 @@ function setErrorHandler(fastify: FastifyInstance) {
 }
 
 function setMiddleware(fastify: FastifyInstance) {
-  fastify.addHook('onRequest', (request, reply, done) => {
+  fastify.addHook('onRequest', async (request, _reply) => {
+    const internal = request.headers['x-internal'];
     const authenticated = request.headers['x-authenticated'];
     const userId = request.headers['x-user-id'];
 
+    request.internal = false;
+    if (internal !== undefined && !Array.isArray(internal) && internal === 'true') {
+      request.internal = true;
+    }
+
     if (authenticated === undefined || Array.isArray(authenticated)) {
       request.authenticated = false;
-      request.userId = undefined;
-      return done();
+      request.userId = -1;
+      return;
     }
 
-    if (userId === undefined || Array.isArray(userId)) {
+    if (userId === undefined || Array.isArray(userId) || isNaN(Number(userId))) {
       request.authenticated = false;
-      request.userId = undefined;
-      return done();
-    }
-
-    if (isNaN(Number(userId))) {
-      request.authenticated = false;
-      request.userId = undefined;
-      return done();
+      request.userId = -1;
+      return;
     }
 
     if (authenticated === 'true') {
       request.authenticated = true;
       request.userId = parseInt(userId as string, 10);
     }
-    return done();
   });
 }
 

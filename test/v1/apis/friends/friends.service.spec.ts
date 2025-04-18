@@ -30,6 +30,7 @@ const mockFriendRepository: FriendRepositoryInterface = {
   findAllByUserIdAndStatus: vi.fn(),
   findAllByFriendIdAndStatus: vi.fn(),
   findByUserIdAndFriendId: vi.fn(),
+  findAllByUserId: vi.fn(),
 };
 
 let friendsService: FriendsService;
