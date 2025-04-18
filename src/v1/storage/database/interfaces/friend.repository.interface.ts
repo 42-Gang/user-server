@@ -14,4 +14,6 @@ export default interface FriendRepositoryInterface
     userId: number;
     friendId: number;
   }): Promise<friend | null>;
+
+  findAllByUserId(userId: number): Promise<friend[]>;
 }

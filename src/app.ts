@@ -30,26 +30,26 @@ function setMiddleware(fastify: FastifyInstance) {
     if (authenticated === undefined || Array.isArray(authenticated)) {
       request.authenticated = false;
       request.userId = undefined;
-      done();
+      return done();
     }
 
     if (userId === undefined || Array.isArray(userId)) {
       request.authenticated = false;
       request.userId = undefined;
-      done();
+      return done();
     }
 
     if (isNaN(Number(userId))) {
       request.authenticated = false;
       request.userId = undefined;
-      done();
+      return done();
     }
 
     if (authenticated === 'true') {
       request.authenticated = true;
       request.userId = parseInt(userId as string, 10);
     }
-    done();
+    return done();
   });
 }
 
