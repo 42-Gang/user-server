@@ -1,4 +1,3 @@
-// utils/token.ts
 import { decode } from 'js-base64';
 import { BadRequestException } from '../../common/exceptions/core.error.js';
 

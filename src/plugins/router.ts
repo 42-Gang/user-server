@@ -16,6 +16,7 @@ export interface Route {
 
 export async function addRoutes(fastify: FastifyInstance, routes: Route[]) {
   routes.forEach((route) => {
+    // 권한 필요 없으면 그대로 등록
     if (route.options.auth === false) {
       fastify.route({
         method: route.method,
@@ -31,7 +32,7 @@ export async function addRoutes(fastify: FastifyInstance, routes: Route[]) {
       url: route.url,
       handler: route.handler,
       schema: route.options.schema,
-      onRequest: fastify.authenticate,
+      preHandler: fastify.authenticate, // ✅ 권한 확인 미들웨어
     });
   });
 }

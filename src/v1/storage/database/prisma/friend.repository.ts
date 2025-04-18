@@ -35,12 +35,14 @@ export default class FriendRepositoryPrisma implements FriendRepositoryInterface
     userId: number;
     friendId: number;
   }): Promise<Friend | null> {
-    return this.prisma.friend.findFirst({
-      where: { userId, friendId },
-    });
+    return this.prisma.friend.findFirst({ where: { userId, friendId } });
   }
 
   update(id: number, data: Prisma.FriendUpdateInput): Promise<Friend> {
     return this.prisma.friend.update({ where: { id }, data });
+  }
+
+  findAllByUserId(userId: number): Promise<Friend[]> {
+    return this.prisma.friend.findMany({ where: { userId } });
   }
 }

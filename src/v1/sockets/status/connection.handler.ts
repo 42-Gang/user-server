@@ -19,7 +19,7 @@ export async function handleConnection(
     redis.set(`user:${userId}:status`, userStatus.ONLINE);
 
     const friends = await statusService.fetchFriends(userId);
-    await joinFriendStatusRooms(socket, friends);
+    await joinFriendStatusRooms(socket, friends, statusService);
     await emitFriendsStatus(friends, socket);
 
     await sendStatus(userId, userStatus.ONLINE);
@@ -33,8 +33,17 @@ export async function handleConnection(
   }
 }
 
-async function joinFriendStatusRooms(socket: Socket, friends: TypeOf<typeof friendsSchema>) {
+async function joinFriendStatusRooms(
+  socket: Socket,
+  friends: TypeOf<typeof friendsSchema>,
+  statusService: StatusService,
+) {
   for (const friend of friends) {
+    const friendStatus = await statusService.fetchFriendStatus({
+      userId: friend.friendId,
+      friendId: socket.data.userId,
+    });
+    if (friendStatus.status === 'BLOCKED') continue;
     socket.join(`user-status-${friend.friendId}`);
   }
 }

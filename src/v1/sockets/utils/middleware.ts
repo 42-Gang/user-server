@@ -12,8 +12,9 @@ export async function socketMiddleware(socket: Socket, next: NextFunction) {
       return next(new BadRequestException('유효하지 않은 토큰 형식입니다.'));
     }
 
-    const isVerified = await verifyAccessToken(token);
-    if (!isVerified) return next(new UnAuthorizedException('인증되지 않은 사용자입니다.'));
+    const responseStatus = await verifyAccessToken(token);
+    if (responseStatus !== 200)
+      return next(new UnAuthorizedException('인증되지 않은 사용자입니다.'));
 
     const { id } = decodeJwtPayload(token);
     socket.data.userId = id;
