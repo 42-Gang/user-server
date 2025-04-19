@@ -63,6 +63,9 @@ export default class UsersService {
     return {
       status: STATUS.SUCCESS,
       message: '로그인 성공',
+      data: {
+        userId: user.id,
+      },
     };
   }
 
@@ -108,6 +111,7 @@ export default class UsersService {
 
   async checkDuplicatedEmail(email: string): Promise<boolean> {
     const foundEmail = await this.userRepository.findByEmail(email);
+    console.log('foundEmail', foundEmail);
     if (foundEmail) {
       throw new ConflictException('이미 존재하는 이메일입니다.');
     }

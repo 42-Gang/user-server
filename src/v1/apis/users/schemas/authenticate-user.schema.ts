@@ -10,4 +10,8 @@ export const authenticateUserInputSchema = userSchema
     password: z.string(),
   });
 
-export const authenticateUserResponseSchema = createResponseSchema(z.undefined());
+export const authenticateUserResponseSchema = createResponseSchema(
+  z.object({
+    userId: z.number(),
+  }),
+);
