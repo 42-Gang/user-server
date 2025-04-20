@@ -1,43 +1,127 @@
+import { TOPICS } from './constants.js';
 import { producer } from '../../../plugins/kafka.js';
 
-export async function sendFriendAddEvent({
-	userAId,
-	userBId,
-	timestamp = Date.now(),
+export async function sendFriendRequestEvent({
+  fromUserId,
+  toUserId,
+  timestamp = new Date().toISOString(),
   }: {
-	userAId: number;
-	userBId: number;
-	timestamp?: number;
+  fromUserId: number;
+  toUserId: number;
+  timestamp?: string;
   }) {
-	await producer.send({
-	  topic: 'friend-add',
-	  messages: [
-		{
-		  key: String(userAId),
-		  value: JSON.stringify({ userAId, userBId, timestamp }),
-		},
-	  ],
-	});
+  await producer.send({
+    topic: TOPICS.FRIEND,
+    messages: [
+    {
+      key: String(Math.min(fromUserId, toUserId)) + '-' + String(Math.max(fromUserId, toUserId)),
+      value: JSON.stringify({
+      eventType: 'REQUESTED',
+      fromUserId,
+      toUserId,
+      timestamp,
+      }),
+    },
+    ],
+  });
   }
 
- export async function sendFriendBlockEvent({
-	userAId,
-	userBId,
-	status,
-	timestamp = Date.now(),
+  export async function sendFriendAcceptEvent({
+  fromUserId,
+  toUserId,
+  timestamp = new Date().toISOString(),
   }: {
-	userAId: number;
-	userBId: number;
-	status: 'BLOCKED' | 'UNBLOCKED';
-	timestamp?: number;
+  fromUserId: number;
+  toUserId: number;
+  timestamp?: string;
   }) {
-	await producer.send({
-	  topic: 'friend-block',
-	  messages: [
-		{
-		  key: String(userAId),
-		  value: JSON.stringify({ userAId, userBId, status, timestamp }),
-		},
-	  ],
-	});
+  await producer.send({
+    topic: TOPICS.FRIEND,
+    messages: [
+    {
+      key: String(Math.min(fromUserId, toUserId)) + '-' + String(Math.max(fromUserId, toUserId)),
+      value: JSON.stringify({
+      eventType: 'ACCEPTED',
+      fromUserId,
+      toUserId,
+      timestamp,
+      }),
+    },
+    ],
+  });
+  }
+
+  export async function sendFriendAddedEvent({
+  userAId,
+  userBId,
+  timestamp = new Date().toISOString(),
+  }: {
+  userAId: number;
+  userBId: number;
+  timestamp?: string;
+  }) {
+  await producer.send({
+    topic: TOPICS.FRIEND,
+    messages: [
+    {
+      key: String(Math.min(userAId, userBId)) + '-' + String(Math.max(userAId, userBId)),
+      value: JSON.stringify({
+      eventType: 'ADDED',
+      userAId,
+      userBId,
+      timestamp,
+      }),
+    },
+    ],
+  });
+  }
+
+  export async function sendBlockEvent({
+  fromUserId,
+  toUserId,
+  timestamp = new Date().toISOString(),
+  }: {
+  fromUserId: number;
+  toUserId: number;
+  timestamp?: string;
+  }) {
+  await producer.send({
+    topic: TOPICS.FRIEND,
+    messages: [
+    {
+      key: String(Math.min(fromUserId, toUserId)) + '-' + String(Math.max(fromUserId, toUserId)), // 동일한 차단 관계를 위한 키 생성
+      value: JSON.stringify({
+      eventType: 'BLOCK',
+      fromUserId,
+      toUserId,
+      timestamp,
+      }),
+    },
+    ],
+  });
+  }
+
+  export async function sendUnblockEvent({
+  fromUserId,
+  toUserId,
+  timestamp = new Date().toISOString(),
+  }: {
+  fromUserId: number;
+  toUserId: number;
+  timestamp?: string;
+  }) {
+  await producer.send({
+    topic: 'user-block-events', // 차단/해제 이벤트를 위한 Kafka 토픽
+    messages: [
+    {
+      key: String(Math.min(fromUserId, toUserId)) + '-' + String(Math.max(fromUserId, toUserId)), // 동일한 차단 관계를 위한 키 생성
+      value: JSON.stringify({
+      eventType: 'UNBLOCK', // 이벤트 유형은 'UNBLOCK'
+      fromUserId,
+      toUserId,
+      timestamp,
+      }),
+    },
+    ],
+  });
   }

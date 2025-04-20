@@ -14,7 +14,7 @@ import { getRequestsResponseSchema } from './schemas/get-requests.schema.js';
 import { getStatusQuerySchema } from './schemas/get-status.schema.js';
 import { Status, Friend } from '@prisma/client';
 import UserRepositoryInterface from '../../storage/database/interfaces/user.repository.interface.js';
-import { sendFriendAddEvent, sendFriendBlockEvent } from '../../kafka/friends/producer.js';
+import { sendFriendAddedEvent, sendFriendBlockEvent } from '../../kafka/friends/producer.js';
 
 export default class FriendsService {
   constructor(
@@ -84,8 +84,8 @@ export default class FriendsService {
     await this.syncReverseFriendRelation(friendRequest);
 
     // 웹소켓으로 요청 수락했다는 이벤트 전송
-    await sendFriendAddEvent({ userAId: userId, userBId: senderId });
-    await sendFriendAddEvent({ userAId: senderId, userBId: userId });
+    await sendFriendAddedEvent({ userAId: userId, userBId: senderId });
+    await sendFriendAddedEvent({ userAId: senderId, userBId: userId });
 
     return {
       status: STATUS.SUCCESS,
