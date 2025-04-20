@@ -6,6 +6,8 @@ import {
   friendResponseSchema,
   updateFriendParamsSchema,
 } from './friends.schema.js';
+import { getFriendsQuerySchema } from './schemas/get-friends.schema.js';
+import { getStatusQuerySchema } from './schemas/get-status.schema.js';
 
 export default async function friendsRoutes(fastify: FastifyInstance) {
   const friendsController: FriendsController = fastify.diContainer.resolve('friendsController');
@@ -91,21 +93,53 @@ export default async function friendsRoutes(fastify: FastifyInstance) {
         auth: true,
       },
     },
-    // {
-    //   method: 'GET',
-    //   url: '/',
-    //   handler: friendsController.getFriends,
-    //   options: {
-    //     schema: {
-    //       tags: ['friends'],
-    //       description: '친구 리스트',
-    //       response: {
-    //         200: friendResponseSchema,
-    //       },
-    //     },
-    //     auth: true,
-    //   },
-    // },
+    {
+      method: 'GET',
+      url: '/me',
+      handler: friendsController.getFriends,
+      options: {
+        schema: {
+          tags: ['friends'],
+          description: '친구 리스트',
+          querystring: getFriendsQuerySchema,
+          response: {
+            200: friendResponseSchema,
+          },
+        },
+        auth: true,
+      },
+    },
+    {
+      method: 'GET',
+      url: '/requests',
+      handler: friendsController.getRequests,
+      options: {
+        schema: {
+          tags: ['friends'],
+          description: '친구 요청 리스트',
+          response: {
+            200: friendResponseSchema,
+          },
+        },
+        auth: true,
+      },
+    },
+    {
+      method: 'GET',
+      url: '/status',
+      handler: friendsController.getStatus,
+      options: {
+        schema: {
+          tags: ['friends'],
+          description: '친구 관계 조회',
+          querystring: getStatusQuerySchema,
+          response: {
+            200: friendResponseSchema,
+          },
+        },
+        auth: true,
+      },
+    },
   ];
 
   await addRoutes(fastify, routes);
