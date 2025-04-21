@@ -1,7 +1,18 @@
 export const TOPICS = {
   USER_STATUS: 'user-status',
-  FRIEND_ADD: 'friend-add',
-  FRIEND_BLOCK: 'friend-block',
+  FRIEND: 'friend',
+};
+
+export const FRIEND_EVENTS = {
+  REQUESTED: 'REQUESTED',
+  ACCEPTED: 'ACCEPTED',
+  ADDED: 'ADDED',
+  BLOCK: 'BLOCK',
+  UNBLOCK: 'UNBLOCK',
+};
+
+export const USER_STATUS_EVENTS = {
+  CHANGED: 'CHANGED',
 };
 
 export const GROUP_IDS = {
