@@ -20,20 +20,27 @@ export default class FriendConsumer {
   }
 
   async handleFriendBlockMessage(message: TypeOf<typeof friendBlockMessage>) {
-    const { userAId, userBId } = message;
+    const { fromUserId, toUserId } = message;
 
-    if (message.status === 'BLOCKED') {
-      await redis.del(`user:${userAId}:friend:${userBId}`);
-      await redis.del(`user:${userBId}:friend:${userAId}`);
-    }
+    await redis.del(`user:${fromUserId}:friend:${toUserId}`);
+    await redis.del(`user:${toUserId}:friend:${fromUserId}`);
 
-    if (message.status === 'UNBLOCKED') {
-      await this.friendCacheRepository.addFriend(Number(userAId), { friendId: Number(userBId) });
-      await this.friendCacheRepository.addFriend(Number(userBId), { friendId: Number(userAId) });
-    }
+    await this.joinFriendStatusRooms(this.namespace, fromUserId, toUserId);
+    await this.emitFriendStatus(this.namespace, fromUserId, toUserId);
+  }
 
-    await this.joinFriendStatusRooms(this.namespace, userAId, userBId);
-    await this.emitFriendStatus(this.namespace, userAId, userBId);
+  async handleFriendUnblockMessage(message: TypeOf<typeof friendBlockMessage>) {
+    const { fromUserId, toUserId } = message;
+
+    await this.friendCacheRepository.addFriend(Number(fromUserId), {
+      friendId: Number(toUserId),
+    });
+    await this.friendCacheRepository.addFriend(Number(toUserId), {
+      friendId: Number(fromUserId),
+    });
+
+    await this.joinFriendStatusRooms(this.namespace, fromUserId, toUserId);
+    await this.emitFriendStatus(this.namespace, fromUserId, toUserId);
   }
 
   private async emitFriendStatus(namespace: Namespace, userAId: string, userBId: string) {
