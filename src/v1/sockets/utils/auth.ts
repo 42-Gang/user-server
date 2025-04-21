@@ -1,4 +1,3 @@
-// utils/auth.ts
 import { gotClient } from '../../../plugins/http.client.js';
 
 export async function verifyAccessToken(token: string): Promise<number> {
