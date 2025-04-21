@@ -1,6 +1,6 @@
 import { Namespace } from 'socket.io';
 import { FriendCacheInterface } from '../../../storage/cache/interfaces/friend.cache.interface.js';
-import { TOPICS, GROUP_IDS } from './constants.js';
+import { TOPICS, GROUP_IDS, USER_STATUS_EVENTS, FRIEND_EVENTS } from './constants.js';
 import { kafka } from '../../../../plugins/kafka.js';
 import FriendConsumer from './friend.consumer.js';
 import UserStatusConsumer from './user-status.consumer.js';
@@ -26,17 +26,20 @@ export async function startConsumer(
       const parsedMessage = JSON.parse(message.value.toString());
 
       if (topic === TOPICS.USER_STATUS) {
-        await userStatusConsumer.handleUserStatusMessage(parsedMessage);
+        if (parsedMessage.eventType == USER_STATUS_EVENTS.CHANGED)
+          await userStatusConsumer.handleUserStatusMessage(parsedMessage);
         return;
       }
       if (topic === TOPICS.FRIEND) {
-        await friendConsumer.handleFriendAddMessage(parsedMessage);
+        if (parsedMessage.eventType == FRIEND_EVENTS.ADDED)
+          await friendConsumer.handleFriendAddMessage(parsedMessage);
+        // if (
+        //   parsedMessage.eventType == FRIEND_EVENTS.BLOCK ||
+        //   parsedMessage.eventType == FRIEND_EVENTS.UNBLOCK
+        // )
+        //   await friendConsumer.handleFriendBlockMessage(parsedMessage);
         return;
       }
-      // if (topic === TOPICS.FRIEND_BLOCK) {
-      //   await handleFriendBlockMessage(parsedMessage, namespace, friendCacheRepository);
-      //   return;
-      // }
     },
   });
 }

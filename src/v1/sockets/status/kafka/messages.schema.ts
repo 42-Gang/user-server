@@ -13,8 +13,7 @@ export const friendAddMessage = z.object({
 });
 
 export const friendBlockMessage = z.object({
-  userAId: z.string(),
-  userBId: z.string(),
-  status: z.enum(['BLOCKED', 'UNBLOCKED']),
+  fromUserId: z.string(),
+  toUserId: z.string(),
   timestamp: z.string().optional(),
 });

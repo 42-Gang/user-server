@@ -19,7 +19,7 @@ export default class FriendConsumer {
     await this.emitFriendStatus(this.namespace, userAId, userBId);
   }
 
-  async handleFriendBlockMessage(message: TypeOf<typeof friendBlockMessage>, namespace: Namespace) {
+  async handleFriendBlockMessage(message: TypeOf<typeof friendBlockMessage>) {
     const { userAId, userBId } = message;
 
     if (message.status === 'BLOCKED') {
@@ -32,8 +32,8 @@ export default class FriendConsumer {
       await this.friendCacheRepository.addFriend(Number(userBId), { friendId: Number(userAId) });
     }
 
-    await this.joinFriendStatusRooms(namespace, userAId, userBId);
-    await this.emitFriendStatus(namespace, userAId, userBId);
+    await this.joinFriendStatusRooms(this.namespace, userAId, userBId);
+    await this.emitFriendStatus(this.namespace, userAId, userBId);
   }
 
   private async emitFriendStatus(namespace: Namespace, userAId: string, userBId: string) {
