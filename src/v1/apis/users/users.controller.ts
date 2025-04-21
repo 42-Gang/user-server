@@ -44,7 +44,9 @@ export default class UsersController {
   };
 
   checkDuplicatedEmail = async (request: FastifyRequest, reply: FastifyReply) => {
+    request.log.info(request.params, 'checkDuplicatedEmail');
     const params = checkDuplicatedEmailParamsSchema.parse(request.params);
+    request.log.info(params, 'checkDuplicatedEmail');
     await this.usersService.checkDuplicatedEmail(params.email);
     reply.code(200).send({
       status: STATUS.SUCCESS,

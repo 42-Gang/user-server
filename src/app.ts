@@ -54,11 +54,19 @@ function setMiddleware(fastify: FastifyInstance) {
 
 function setDecorate(fastify: FastifyInstance) {
   fastify.decorate('authenticate', async (request: FastifyRequest, reply: FastifyReply) => {
-    console.log(request.authenticated);
     if (!request.authenticated) {
       reply.code(401).send({
         status: STATUS.ERROR,
         message: 'Unauthorized',
+      });
+    }
+  });
+
+  fastify.decorate('internalOnly', async (request: FastifyRequest, reply: FastifyReply) => {
+    if (!request.internal) {
+      return reply.status(403).send({
+        status: STATUS.ERROR,
+        message: 'Forbidden',
       });
     }
   });
