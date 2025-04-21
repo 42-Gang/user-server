@@ -4,8 +4,46 @@ import { TOPICS, GROUP_IDS, USER_STATUS_EVENTS, FRIEND_EVENTS } from './constant
 import { kafka } from '../../../../plugins/kafka.js';
 import FriendConsumer from './friend.consumer.js';
 import UserStatusConsumer from './user-status.consumer.js';
+import { userStatus } from '../status.schema.js';
+import { friendAddMessage, userStatusMessage } from './messages.schema.js';
 
 const consumer = kafka.consumer({ groupId: GROUP_IDS.STATUS, sessionTimeout: 10000 });
+
+async function handleFriendTopic(
+  messageValue: string,
+  friendConsumer: FriendConsumer,
+  userStatusConsumer: UserStatusConsumer,
+) {
+  const parsedMessage = JSON.parse(messageValue);
+
+  if (parsedMessage.eventType == FRIEND_EVENTS.ADDED) {
+    const data = friendAddMessage.parse(parsedMessage);
+    await userStatusConsumer.handleUserStatusMessage({
+      userId: data.userAId,
+      status: userStatus.ONLINE,
+    });
+    await userStatusConsumer.handleUserStatusMessage({
+      userId: data.userBId,
+      status: userStatus.ONLINE,
+    });
+
+    await friendConsumer.handleFriendAddMessage(data);
+  }
+  // if (
+  //   parsedMessage.eventType == FRIEND_EVENTS.BLOCK ||
+  //   parsedMessage.eventType == FRIEND_EVENTS.UNBLOCK
+  // )
+  //   await friendConsumer.handleFriendBlockMessage(parsedMessage);
+}
+
+async function handleUserStatusTopic(messageValue: string, userStatusConsumer: UserStatusConsumer) {
+  const parsedMessage = JSON.parse(messageValue);
+  if (parsedMessage.eventType == USER_STATUS_EVENTS.CHANGED) {
+    const data = userStatusMessage.parse(parsedMessage);
+    await userStatusConsumer.handleUserStatusMessage(data);
+  }
+  return;
+}
 
 export async function startConsumer(
   namespace: Namespace,
@@ -23,22 +61,11 @@ export async function startConsumer(
         return console.warn(`Null message received on topic ${topic}`);
       }
 
-      const parsedMessage = JSON.parse(message.value.toString());
-
       if (topic === TOPICS.USER_STATUS) {
-        if (parsedMessage.eventType == USER_STATUS_EVENTS.CHANGED)
-          await userStatusConsumer.handleUserStatusMessage(parsedMessage);
-        return;
+        await handleUserStatusTopic(message.value.toString(), userStatusConsumer);
       }
       if (topic === TOPICS.FRIEND) {
-        if (parsedMessage.eventType == FRIEND_EVENTS.ADDED)
-          await friendConsumer.handleFriendAddMessage(parsedMessage);
-        // if (
-        //   parsedMessage.eventType == FRIEND_EVENTS.BLOCK ||
-        //   parsedMessage.eventType == FRIEND_EVENTS.UNBLOCK
-        // )
-        //   await friendConsumer.handleFriendBlockMessage(parsedMessage);
-        return;
+        await handleFriendTopic(message.value.toString(), friendConsumer, userStatusConsumer);
       }
     },
   });
