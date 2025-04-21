@@ -1,4 +1,4 @@
-import { TOPICS } from './constants.js';
+import { TOPICS, FRIEND_EVENTS } from './constants.js';
 import { producer } from '../../../plugins/kafka.js';
 
 export async function sendFriendRequestEvent({
@@ -16,7 +16,7 @@ export async function sendFriendRequestEvent({
     {
       key: String(Math.min(fromUserId, toUserId)) + '-' + String(Math.max(fromUserId, toUserId)),
       value: JSON.stringify({
-      eventType: 'REQUESTED',
+      eventType: FRIEND_EVENTS.REQUESTED,
       fromUserId,
       toUserId,
       timestamp,
@@ -41,7 +41,7 @@ export async function sendFriendRequestEvent({
     {
       key: String(Math.min(fromUserId, toUserId)) + '-' + String(Math.max(fromUserId, toUserId)),
       value: JSON.stringify({
-      eventType: 'ACCEPTED',
+      eventType: FRIEND_EVENTS.ACCEPTED,
       fromUserId,
       toUserId,
       timestamp,
@@ -66,7 +66,7 @@ export async function sendFriendRequestEvent({
     {
       key: String(Math.min(userAId, userBId)) + '-' + String(Math.max(userAId, userBId)),
       value: JSON.stringify({
-      eventType: 'ADDED',
+      eventType: FRIEND_EVENTS.ADDED,
       userAId,
       userBId,
       timestamp,
@@ -91,7 +91,7 @@ export async function sendFriendRequestEvent({
     {
       key: String(Math.min(fromUserId, toUserId)) + '-' + String(Math.max(fromUserId, toUserId)), // 동일한 차단 관계를 위한 키 생성
       value: JSON.stringify({
-      eventType: 'BLOCK',
+      eventType: FRIEND_EVENTS.BLOCK,
       fromUserId,
       toUserId,
       timestamp,
@@ -111,12 +111,12 @@ export async function sendFriendRequestEvent({
   timestamp?: string;
   }) {
   await producer.send({
-    topic: 'user-block-events', // 차단/해제 이벤트를 위한 Kafka 토픽
+    topic: TOPICS.FRIEND,
     messages: [
     {
       key: String(Math.min(fromUserId, toUserId)) + '-' + String(Math.max(fromUserId, toUserId)), // 동일한 차단 관계를 위한 키 생성
       value: JSON.stringify({
-      eventType: 'UNBLOCK', // 이벤트 유형은 'UNBLOCK'
+      eventType: FRIEND_EVENTS.UNBLOCK, // 이벤트 유형은 'UNBLOCK'
       fromUserId,
       toUserId,
       timestamp,

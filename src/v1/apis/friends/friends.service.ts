@@ -14,7 +14,7 @@ import { getRequestsResponseSchema } from './schemas/get-requests.schema.js';
 import { getStatusQuerySchema } from './schemas/get-status.schema.js';
 import { Status, Friend } from '@prisma/client';
 import UserRepositoryInterface from '../../storage/database/interfaces/user.repository.interface.js';
-import { sendFriendAddedEvent, sendFriendBlockEvent } from '../../kafka/friends/producer.js';
+// import { sendFriendRequestEvent, sendFriendAcceptEvent, sendFriendAddedEvent, sendBlockEvent, sendUnblockEvent } from '../../kafka/friends/producer.js';
 
 export default class FriendsService {
   constructor(
@@ -48,6 +48,7 @@ export default class FriendsService {
     });
 
     // 웹소켓으로 요청 발생했다는 이벤트 전송
+    // await sendFriendRequestEvent({ fromUserId: userId, toUserId: friendId });
 
     return {
       status: STATUS.SUCCESS,
@@ -83,9 +84,9 @@ export default class FriendsService {
     // 나와 상대방의 친구 관계를 동기화
     await this.syncReverseFriendRelation(friendRequest);
 
-    // 웹소켓으로 요청 수락했다는 이벤트 전송
-    await sendFriendAddedEvent({ userAId: userId, userBId: senderId });
-    await sendFriendAddedEvent({ userAId: senderId, userBId: userId });
+    // 웹소켓으로 요청 수락했다는 이벤트 전송(생기는 방이 하나이므로 한번만 전송)
+    // await sendFriendAcceptEvent({ fromUserId: senderId, toUserId: userId });
+    // await sendFriendAddedEvent({ userAId: userId, userBId: senderId });
 
     return {
       status: STATUS.SUCCESS,
@@ -140,7 +141,7 @@ export default class FriendsService {
 
     await this.friendRepository.update(friend.id, { status: Status.BLOCKED });
 
-    await sendFriendBlockEvent({ userAId: userId, userBId: friendId, status: 'BLOCKED' });
+    // await sendBlockEvent({ fromUserId: userId, toUserId: friendId });
 
     return {
       status: STATUS.SUCCESS,
@@ -165,7 +166,7 @@ export default class FriendsService {
 
     await this.friendRepository.update(friend.id, { status: Status.ACCEPTED });
 
-    await sendFriendBlockEvent({ userAId: userId, userBId: friendId, status: 'UNBLOCKED' });
+    // await sendUnblockEvent({ fromUserId: userId, toUserId: friendId });
 
     return {
       status: STATUS.SUCCESS,
