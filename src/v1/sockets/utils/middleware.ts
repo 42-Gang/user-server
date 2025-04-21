@@ -16,8 +16,8 @@ export async function socketMiddleware(socket: Socket, next: NextFunction) {
     if (responseStatus !== 200)
       return next(new UnAuthorizedException('인증되지 않은 사용자입니다.'));
 
-    const { id } = decodeJwtPayload(token);
-    socket.data.userId = id;
+    const { userId } = decodeJwtPayload(token);
+    socket.data.userId = userId;
     next();
   } catch (e) {
     console.error('Socket middleware error:', e);
