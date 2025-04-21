@@ -5,7 +5,7 @@ import { kafka } from '../../../../plugins/kafka.js';
 import FriendConsumer from './friend.consumer.js';
 import UserStatusConsumer from './user-status.consumer.js';
 import { userStatus } from '../status.schema.js';
-import { friendAddMessage, userStatusMessage } from './messages.schema.js';
+import { friendAddMessage, friendBlockMessage, userStatusMessage } from './messages.schema.js';
 
 const consumer = kafka.consumer({ groupId: GROUP_IDS.STATUS, sessionTimeout: 10000 });
 
@@ -29,11 +29,24 @@ async function handleFriendTopic(
 
     await friendConsumer.handleFriendAddMessage(data);
   }
-  // if (
-  //   parsedMessage.eventType == FRIEND_EVENTS.BLOCK ||
-  //   parsedMessage.eventType == FRIEND_EVENTS.UNBLOCK
-  // )
-  //   await friendConsumer.handleFriendBlockMessage(parsedMessage);
+  if (parsedMessage.eventType == FRIEND_EVENTS.BLOCK) {
+    const data = friendBlockMessage.parse(parsedMessage);
+    await userStatusConsumer.handleUserStatusMessage({
+      userId: data.fromUserId,
+      status: userStatus.ONLINE,
+    });
+
+    await friendConsumer.handleFriendBlockMessage(parsedMessage);
+  }
+  if (parsedMessage.eventType == FRIEND_EVENTS.UNBLOCK) {
+    const data = friendBlockMessage.parse(parsedMessage);
+    await userStatusConsumer.handleUserStatusMessage({
+      userId: data.fromUserId,
+      status: userStatus.ONLINE,
+    });
+
+    await friendConsumer.handleFriendUnblockMessage(parsedMessage);
+  }
 }
 
 async function handleUserStatusTopic(messageValue: string, userStatusConsumer: UserStatusConsumer) {
