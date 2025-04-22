@@ -1,19 +1,19 @@
 import { z } from 'zod';
 
 export const userStatusMessage = z.object({
-  userId: z.string(),
+  userId: z.number(),
   status: z.enum(['ONLINE', 'OFFLINE', 'GAME', 'AWAY', 'LOBBY']),
   timestamp: z.string().optional(),
 });
 
 export const friendAddMessage = z.object({
-  userAId: z.string(),
-  userBId: z.string(),
+  userAId: z.number(),
+  userBId: z.number(),
   timestamp: z.string().optional(),
 });
 
 export const friendBlockMessage = z.object({
-  fromUserId: z.string(),
-  toUserId: z.string(),
+  fromUserId: z.number(),
+  toUserId: z.number(),
   timestamp: z.string().optional(),
 });

@@ -1,7 +1,10 @@
 import { gotClient } from '../../../plugins/http.client.js';
 import { UnAuthorizedException } from '../../common/exceptions/core.error.js';
 
-export async function verifyAccessToken(token: string): Promise<number> {
+export async function verifyAccessToken(token: string): Promise<{
+  status: number;
+  userId: string;
+}> {
   const response = await gotClient.request({
     method: 'POST',
     url: `http://${process.env.AUTH_SERVER}/api/v1/auth/validate-token`,
@@ -10,9 +13,21 @@ export async function verifyAccessToken(token: string): Promise<number> {
     },
   });
 
-  if (response.headers.authorization !== 'true') {
+  if (response.headers['x-authenticated'] === undefined) {
     throw new UnAuthorizedException('');
   }
 
-  return response.statusCode;
+  if (response.headers['x-authenticated'] !== 'true') {
+    throw new UnAuthorizedException('');
+  }
+
+  const userId = response.headers['x-user-id'];
+  if (Array.isArray(userId) || userId === undefined) {
+    throw new UnAuthorizedException('');
+  }
+
+  return {
+    status: response.statusCode,
+    userId,
+  };
 }
