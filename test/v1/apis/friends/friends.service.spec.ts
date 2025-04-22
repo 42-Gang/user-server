@@ -308,15 +308,15 @@ describe('getFriends', () => {
     expect(result.status).toBe('SUCCESS');
     expect(result.data.friends).toEqual([
       {
-        friend_id: 2,
+        friendId: 2,
         nickname: 'Alice',
-        avatar_url: 'https://img1.com',
+        avatarUrl: 'https://img1.com',
         status: Status.ACCEPTED,
       },
       {
-        friend_id: 3,
+        friendId: 3,
         nickname: 'Bob',
-        avatar_url: 'https://img2.com',
+        avatarUrl: 'https://img2.com',
         status: Status.BLOCKED,
       },
     ]);

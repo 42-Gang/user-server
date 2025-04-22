@@ -211,9 +211,9 @@ export default class FriendsService {
           throw new NotFoundException(`유저 ID ${friendId}를 찾을 수 없습니다`);
         }
         return {
-          friend_id: friendId,
+          friendId: friendId,
           nickname: profile.nickname,
-          avatar_url: profile.avatarUrl,
+          avatarUrl: profile.avatarUrl,
           status,
         };
       }),
@@ -245,9 +245,9 @@ export default class FriendsService {
           throw new NotFoundException(`유저 ID ${userId}를 찾을 수 없습니다`);
         }
         return {
-          user_id: userId,
+          userId: userId,
           nickname: profile.nickname,
-          avatar_url: profile.avatarUrl,
+          avatarUrl: profile.avatarUrl,
         };
       }),
     );
