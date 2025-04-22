@@ -14,7 +14,13 @@ import { getRequestsResponseSchema } from './schemas/get-requests.schema.js';
 import { getStatusQuerySchema } from './schemas/get-status.schema.js';
 import { Status, Friend } from '@prisma/client';
 import UserRepositoryInterface from '../../storage/database/interfaces/user.repository.interface.js';
-// import { sendFriendRequestEvent, sendFriendAcceptEvent, sendFriendAddedEvent, sendBlockEvent, sendUnblockEvent } from '../../kafka/friends/producer.js';
+import {
+  sendFriendRequestEvent,
+  sendFriendAcceptEvent,
+  sendFriendAddedEvent,
+  sendBlockEvent,
+  sendUnblockEvent,
+} from '../../kafka/friends/producer.js';
 
 export default class FriendsService {
   constructor(
@@ -48,7 +54,7 @@ export default class FriendsService {
     });
 
     // 웹소켓으로 요청 발생했다는 이벤트 전송
-    // await sendFriendRequestEvent({ fromUserId: userId, toUserId: friendId });
+    await sendFriendRequestEvent({ fromUserId: userId, toUserId: friendId });
 
     return {
       status: STATUS.SUCCESS,
@@ -85,8 +91,8 @@ export default class FriendsService {
     await this.syncReverseFriendRelation(friendRequest);
 
     // 웹소켓으로 요청 수락했다는 이벤트 전송(생기는 방이 하나이므로 한번만 전송)
-    // await sendFriendAcceptEvent({ fromUserId: senderId, toUserId: userId });
-    // await sendFriendAddedEvent({ userAId: userId, userBId: senderId });
+    await sendFriendAcceptEvent({ fromUserId: senderId, toUserId: userId });
+    await sendFriendAddedEvent({ userAId: userId, userBId: senderId });
 
     return {
       status: STATUS.SUCCESS,
@@ -116,8 +122,6 @@ export default class FriendsService {
       status: Status.REJECTED,
     });
 
-    // 웹소켓으로 요청 거절했다는 이벤트 전송
-
     return {
       status: STATUS.SUCCESS,
       message: 'Friend request rejected successfully',
@@ -141,7 +145,7 @@ export default class FriendsService {
 
     await this.friendRepository.update(friend.id, { status: Status.BLOCKED });
 
-    // await sendBlockEvent({ fromUserId: userId, toUserId: friendId });
+    await sendBlockEvent({ fromUserId: userId, toUserId: friendId });
 
     return {
       status: STATUS.SUCCESS,
@@ -166,7 +170,7 @@ export default class FriendsService {
 
     await this.friendRepository.update(friend.id, { status: Status.ACCEPTED });
 
-    // await sendUnblockEvent({ fromUserId: userId, toUserId: friendId });
+    await sendUnblockEvent({ fromUserId: userId, toUserId: friendId });
 
     return {
       status: STATUS.SUCCESS,

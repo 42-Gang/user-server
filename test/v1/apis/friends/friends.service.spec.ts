@@ -11,6 +11,14 @@ import FriendRepositoryInterface from '../../../../src/v1/storage/database/inter
 import UserRepositoryInterface from '../../../../src/v1/storage/database/interfaces/user.repository.interface.js';
 import FriendsService from '../../../../src/v1/apis/friends/friends.service.js';
 
+vi.mock('../../../../src/v1/kafka/friends/producer.js', () => ({
+  sendFriendRequestEvent: vi.fn().mockResolvedValue(undefined),
+  sendFriendAcceptEvent: vi.fn().mockResolvedValue(undefined),
+  sendFriendAddedEvent: vi.fn().mockResolvedValue(undefined),
+  sendBlockEvent: vi.fn().mockResolvedValue(undefined),
+  sendUnblockEvent: vi.fn().mockResolvedValue(undefined),
+}));
+
 const mockUserRepository: UserRepositoryInterface = {
   create: vi.fn(),
   findByEmail: vi.fn(),
