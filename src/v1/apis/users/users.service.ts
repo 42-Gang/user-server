@@ -120,11 +120,7 @@ export default class UsersService {
     return true;
   }
 
-  async getMyProfile(userId: number | undefined): Promise<TypeOf<typeof getProfileResponseSchema>> {
-    if (!userId) {
-      throw new NotFoundException('User not found');
-    }
-
+  async getMyProfile(userId: number): Promise<TypeOf<typeof getProfileResponseSchema>> {
     return {
       status: STATUS.SUCCESS,
       message: 'Profile retrieved successfully',
