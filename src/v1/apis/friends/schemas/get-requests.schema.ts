@@ -5,9 +5,9 @@ export const getRequestsResponseSchema = createResponseSchema(
   z.object({
     requests: z.array(
       z.object({
-        user_id: z.number().int(),
+        userId: z.number().int(),
         nickname: z.string().min(2).max(8),
-        avatar_url: z.string().url(),
+        avatarUrl: z.string().url(),
       }),
     ),
   }),

@@ -14,6 +14,13 @@ import { getRequestsResponseSchema } from './schemas/get-requests.schema.js';
 import { getStatusQuerySchema } from './schemas/get-status.schema.js';
 import { Status, Friend } from '@prisma/client';
 import UserRepositoryInterface from '../../storage/database/interfaces/user.repository.interface.js';
+import {
+  sendFriendRequestEvent,
+  sendFriendAcceptEvent,
+  sendFriendAddedEvent,
+  sendBlockEvent,
+  sendUnblockEvent,
+} from '../../kafka/friends/producer.js';
 
 export default class FriendsService {
   constructor(
@@ -45,6 +52,9 @@ export default class FriendsService {
       friendId,
       status: Status.PENDING,
     });
+
+    // 친구 요청 이벤트 전송
+    await sendFriendRequestEvent({ fromUserId: userId, toUserId: friendId });
 
     return {
       status: STATUS.SUCCESS,
@@ -79,6 +89,11 @@ export default class FriendsService {
 
     // 나와 상대방의 친구 관계를 동기화
     await this.syncReverseFriendRelation(friendRequest);
+
+    // 친구 수락 이벤트 전송
+    await sendFriendAcceptEvent({ fromUserId: senderId, toUserId: userId });
+    // 친구 추가 완료 이벤트 전송(단일 방 생성 기준)
+    await sendFriendAddedEvent({ userAId: userId, userBId: senderId });
 
     return {
       status: STATUS.SUCCESS,
@@ -131,6 +146,8 @@ export default class FriendsService {
 
     await this.friendRepository.update(friend.id, { status: Status.BLOCKED });
 
+    await sendBlockEvent({ fromUserId: userId, toUserId: friendId });
+
     return {
       status: STATUS.SUCCESS,
       message: 'Friend has been blocked successfully',
@@ -153,6 +170,8 @@ export default class FriendsService {
     }
 
     await this.friendRepository.update(friend.id, { status: Status.ACCEPTED });
+
+    await sendUnblockEvent({ fromUserId: userId, toUserId: friendId });
 
     return {
       status: STATUS.SUCCESS,
@@ -193,9 +212,9 @@ export default class FriendsService {
           throw new NotFoundException(`유저 ID ${friendId}를 찾을 수 없습니다`);
         }
         return {
-          friend_id: friendId,
+          friendId: friendId,
           nickname: profile.nickname,
-          avatar_url: profile.avatarUrl,
+          avatarUrl: profile.avatarUrl,
           status,
         };
       }),
@@ -227,9 +246,9 @@ export default class FriendsService {
           throw new NotFoundException(`유저 ID ${userId}를 찾을 수 없습니다`);
         }
         return {
-          user_id: userId,
+          userId: userId,
           nickname: profile.nickname,
-          avatar_url: profile.avatarUrl,
+          avatarUrl: profile.avatarUrl,
         };
       }),
     );
@@ -243,7 +262,6 @@ export default class FriendsService {
     };
   }
 
-  //다음 커밋 때 internal로 수정하면 좋을 듯 합니다
   async getStatus(
     userId: number | undefined,
     parsed: TypeOf<typeof getStatusQuerySchema>,
