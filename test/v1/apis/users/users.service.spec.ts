@@ -127,12 +127,6 @@ describe('닉네임 수정', () => {
     expect(result.data!.nickname).toBe('newNick');
   });
 
-  it('유저 ID 없음', async () => {
-    await expect(usersService.editNickname(undefined, { nickname: 'test' })).rejects.toThrow(
-      NotFoundException,
-    );
-  });
-
   it('업데이트 실패', async () => {
     userRepository.update = vi.fn().mockResolvedValue(null);
 

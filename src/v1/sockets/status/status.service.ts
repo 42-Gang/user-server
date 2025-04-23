@@ -33,7 +33,7 @@ export default class StatusService {
       friendId,
     });
     if (!foundFriend) {
-      throw new NotFoundException('Friend not found');
+      throw new NotFoundException('친구 관계를 찾을 수 없습니다.');
     }
 
     return {
