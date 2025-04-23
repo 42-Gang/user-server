@@ -172,34 +172,19 @@ export default class FriendsService {
       statuses && statuses.length > 0
         ? statuses
         : [Status.ACCEPTED, Status.BLOCKED, Status.REJECTED, Status.PENDING];
+        
+    const allFriends = await this.friendRepository.findManyByUserIdAndStatus(
+      userId,
+      targetStatuses,
+    )
 
-    const allFriends = (
-      await Promise.all(
-        targetStatuses.map((status) =>
-          this.friendRepository.findAllByUserIdAndStatus(userId, status).then((friends) =>
-            friends.map((f) => ({
-              friendId: f.friendId,
-              status,
-            })),
-          ),
-        ),
-      )
-    ).flat();
-
-    const friendsData = await Promise.all(
-      allFriends.map(async ({ friendId, status }) => {
-        const profile = await this.userRepository.findById(friendId);
-        if (!profile) {
-          throw new NotFoundException(`유저 ID ${friendId}를 찾을 수 없습니다`);
-        }
-        return {
-          friend_id: friendId,
-          nickname: profile.nickname,
-          avatar_url: profile.avatarUrl,
-          status,
-        };
-      }),
-    );
+    const friendsData = allFriends.map((friend) => ({
+      friendId: friend.friendId,
+      nickname: friend.friend.nickname,
+      avatarUrl: friend.friend.avatarUrl,
+      status: friend.status,
+    })
+  );
 
     return {
       status: STATUS.SUCCESS,
@@ -220,19 +205,11 @@ export default class FriendsService {
       Status.PENDING,
     );
 
-    const requestsData = await Promise.all(
-      allRequests.map(async ({ userId }) => {
-        const profile = await this.userRepository.findById(userId);
-        if (!profile) {
-          throw new NotFoundException(`유저 ID ${userId}를 찾을 수 없습니다`);
-        }
-        return {
-          user_id: userId,
-          nickname: profile.nickname,
-          avatar_url: profile.avatarUrl,
-        };
-      }),
-    );
+    const requestsData = allRequests.map((user) => ({
+      userId: user.userId,
+      nickname: user.user.nickname,
+      avatarUrl: user.user.avatarUrl,
+    }))
 
     return {
       status: STATUS.SUCCESS,
