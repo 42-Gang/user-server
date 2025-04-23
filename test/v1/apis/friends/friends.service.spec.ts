@@ -11,6 +11,14 @@ import FriendRepositoryInterface from '../../../../src/v1/storage/database/inter
 import UserRepositoryInterface from '../../../../src/v1/storage/database/interfaces/user.repository.interface.js';
 import FriendsService from '../../../../src/v1/apis/friends/friends.service.js';
 
+vi.mock('../../../../src/v1/kafka/friends/producer.js', () => ({
+  sendFriendRequestEvent: vi.fn().mockResolvedValue(undefined),
+  sendFriendAcceptEvent: vi.fn().mockResolvedValue(undefined),
+  sendFriendAddedEvent: vi.fn().mockResolvedValue(undefined),
+  sendBlockEvent: vi.fn().mockResolvedValue(undefined),
+  sendUnblockEvent: vi.fn().mockResolvedValue(undefined),
+}));
+
 const mockUserRepository: UserRepositoryInterface = {
   create: vi.fn(),
   findByEmail: vi.fn(),
@@ -38,6 +46,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   friendsService = new FriendsService(mockUserRepository, mockFriendRepository);
 });
+
 describe('request', () => {
   it('정상적인 친구 요청을 처리해야 함', async () => {
     const userId = 1;
@@ -78,6 +87,7 @@ describe('request', () => {
     await expect(friendsService.request(1, 2)).rejects.toThrow(ConflictException);
   });
 });
+
 describe('accept', () => {
   it('정상적으로 친구 요청을 수락해야 함', async () => {
     const userId = 1;
@@ -148,6 +158,7 @@ describe('accept', () => {
     expect(result.status).toEqual(STATUS.SUCCESS);
   });
 });
+
 describe('reject', () => {
   it('정상적인 친구 요청 거절을 처리해야 함', async () => {
     const friendRequest = {
@@ -297,21 +308,21 @@ describe('getFriends', () => {
     expect(result.status).toBe('SUCCESS');
     expect(result.data.friends).toEqual([
       {
-        friend_id: 2,
+        friendId: 2,
         nickname: 'Alice',
-        avatar_url: 'https://img1.com',
+        avatarUrl: 'https://img1.com',
         status: Status.ACCEPTED,
       },
       {
-        friend_id: 3,
+        friendId: 3,
         nickname: 'Bob',
-        avatar_url: 'https://img2.com',
+        avatarUrl: 'https://img2.com',
         status: Status.BLOCKED,
       },
     ]);
   });
 
-  it('친구 ID에 해당하는 유저 정보가 없으면 예외를 던져야 한다', async () => {
+  it('주어진 status가 없으면 모든 status의 조회 결과를 반환해야 한다', async () => {
     mockFriendRepository.findAllByUserIdAndStatus.mockImplementation((userId: number, status: Status) => {
       if (status === Status.ACCEPTED) return Promise.resolve([{ friendId: 2 }]);
       if (status === Status.BLOCKED) return Promise.resolve([{ friendId: 3 }]);
@@ -334,6 +345,20 @@ describe('getFriends', () => {
     // 기대 결과 테스트
     expect(mockFriendRepository.findAllByUserIdAndStatus).toHaveBeenCalledTimes(4);
     expect(result.status).toBe('SUCCESS');
+  });
+
+  it('친구 ID에 해당하는 유저 정보가 없으면 예외를 던져야 한다', async () => {
+    mockFriendRepository.findAllByUserIdAndStatus.mockImplementation((userId: number, status: Status) => {
+      if (status === Status.ACCEPTED) return Promise.resolve([{ friendId: 2 }]);
+
+      return Promise.resolve([]);
+    });
+  
+    mockUserRepository.findById.mockImplementation((id: number) => {
+      return Promise.resolve(null);
+    });
+
+    await expect(friendsService.getFriends(1, [Status.ACCEPTED])).rejects.toThrowError(NotFoundException);
   });
 });
 
@@ -374,6 +399,20 @@ describe('getRequests', () => {
     const result = await friendsService.getRequests(userId);
     expect(result.status).toBe('SUCCESS');
     expect(result.data.requests.length).toBe(0);
+  });
+
+  it('요청을 보낸 유저의 정보가 없으면 예외를 던져야 한다', async () => {
+    mockFriendRepository.findAllByFriendIdAndStatus.mockImplementation((userId: number, status: Status) => {
+      if (status === Status.PENDING) return Promise.resolve([{ friendId: 2 }]);
+
+      return Promise.resolve([]);
+    });
+  
+    mockUserRepository.findById.mockImplementation((id: number) => {
+      return Promise.resolve(null);
+    });
+
+    await expect(friendsService.getRequests(1)).rejects.toThrowError(NotFoundException);
   });
 });
 
