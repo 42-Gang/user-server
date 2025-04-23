@@ -53,7 +53,7 @@ export default class FriendsService {
       status: Status.PENDING,
     });
 
-    // 웹소켓으로 요청 발생했다는 이벤트 전송
+    // 친구 요청 이벤트 전송
     await sendFriendRequestEvent({ fromUserId: userId, toUserId: friendId });
 
     return {
@@ -90,8 +90,9 @@ export default class FriendsService {
     // 나와 상대방의 친구 관계를 동기화
     await this.syncReverseFriendRelation(friendRequest);
 
-    // 웹소켓으로 요청 수락했다는 이벤트 전송(생기는 방이 하나이므로 한번만 전송)
+    // 친구 수락 이벤트 전송
     await sendFriendAcceptEvent({ fromUserId: senderId, toUserId: userId });
+    // 친구 추가 완료 이벤트 전송(단일 방 생성 기준)
     await sendFriendAddedEvent({ userAId: userId, userBId: senderId });
 
     return {
@@ -261,7 +262,6 @@ export default class FriendsService {
     };
   }
 
-  //다음 커밋 때 internal로 수정하면 좋을 듯 합니다
   async getStatus(
     userId: number | undefined,
     parsed: TypeOf<typeof getStatusQuerySchema>,
