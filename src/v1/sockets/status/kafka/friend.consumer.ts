@@ -3,7 +3,6 @@ import { redis } from '../../../../plugins/redis.js';
 import { TypeOf } from 'zod';
 import { friendAddMessage, friendBlockMessage } from './messages.schema.js';
 import { FriendCacheInterface } from '../../../storage/cache/interfaces/friend.cache.interface.js';
-import * as console from 'node:console';
 
 export default class FriendConsumer {
   constructor(

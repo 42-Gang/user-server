@@ -18,14 +18,14 @@ async function handleFriendTopic(
 
   if (parsedMessage.eventType == FRIEND_EVENTS.ADDED) {
     const data = friendAddMessage.parse(parsedMessage);
-    // await userStatusConsumer.handleUserStatusMessage({
-    //   userId: data.userAId,
-    //   status: userStatus.ONLINE,
-    // });
-    // await userStatusConsumer.handleUserStatusMessage({
-    //   userId: data.userBId,
-    //   status: userStatus.ONLINE,
-    // });
+    await userStatusConsumer.handleUserStatusMessage({
+      userId: data.userAId,
+      status: userStatus.ONLINE,
+    });
+    await userStatusConsumer.handleUserStatusMessage({
+      userId: data.userBId,
+      status: userStatus.ONLINE,
+    });
 
     await friendConsumer.handleFriendAddMessage(data);
   }
