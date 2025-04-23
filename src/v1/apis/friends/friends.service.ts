@@ -28,13 +28,7 @@ export default class FriendsService {
     private readonly friendRepository: FriendRepositoryInterface,
   ) {}
 
-  async request(
-    userId: number | undefined,
-    friendId: number,
-  ): Promise<TypeOf<typeof friendResponseSchema>> {
-    if (!userId) {
-      throw new NotFoundException('Sender user not found');
-    }
+  async request(userId: number, friendId: number): Promise<TypeOf<typeof friendResponseSchema>> {
     const recipient = await this.userRepository.findById(friendId);
     if (!recipient) {
       throw new NotFoundException('Recipient user not found');
@@ -62,14 +56,7 @@ export default class FriendsService {
     };
   }
 
-  async accept(
-    userId: number | undefined,
-    senderId: number,
-  ): Promise<TypeOf<typeof friendResponseSchema>> {
-    if (!userId) {
-      throw new NotFoundException('User not found');
-    }
-
+  async accept(userId: number, senderId: number): Promise<TypeOf<typeof friendResponseSchema>> {
     // 상대방이 나에게 보낸 요청
     const friendRequest = await this.friendRepository.findByUserIdAndFriendId({
       userId: senderId,
@@ -101,13 +88,7 @@ export default class FriendsService {
     };
   }
 
-  async reject(
-    userId: number | undefined,
-    sender: number,
-  ): Promise<TypeOf<typeof friendResponseSchema>> {
-    if (!userId) {
-      throw new NotFoundException('User not found');
-    }
+  async reject(userId: number, sender: number): Promise<TypeOf<typeof friendResponseSchema>> {
     const friendRequest = await this.friendRepository.findByUserIdAndFriendId({
       userId: sender,
       friendId: userId,
@@ -129,13 +110,7 @@ export default class FriendsService {
     };
   }
 
-  async block(
-    userId: number | undefined,
-    friendId: number,
-  ): Promise<TypeOf<typeof friendResponseSchema>> {
-    if (!userId) {
-      throw new NotFoundException('User not found');
-    }
+  async block(userId: number, friendId: number): Promise<TypeOf<typeof friendResponseSchema>> {
     const friend = await this.friendRepository.findByUserIdAndFriendId({ userId, friendId });
     if (!friend) {
       throw new NotFoundException('Friend request not found');
@@ -154,13 +129,7 @@ export default class FriendsService {
     };
   }
 
-  async unblock(
-    userId: number | undefined,
-    friendId: number,
-  ): Promise<TypeOf<typeof friendResponseSchema>> {
-    if (!userId) {
-      throw new NotFoundException('User not found');
-    }
+  async unblock(userId: number, friendId: number): Promise<TypeOf<typeof friendResponseSchema>> {
     const friend = await this.friendRepository.findByUserIdAndFriendId({ userId, friendId });
     if (!friend) {
       throw new NotFoundException('Friend request not found');
@@ -180,13 +149,9 @@ export default class FriendsService {
   }
 
   async getFriends(
-    userId: number | undefined,
+    userId: number,
     statuses: Status[] | undefined,
   ): Promise<TypeOf<typeof friendListResponseSchema>> {
-    if (!userId) {
-      throw new NotFoundException('User not found');
-    }
-
     const targetStatuses =
       statuses && statuses.length > 0
         ? statuses
@@ -229,11 +194,7 @@ export default class FriendsService {
     };
   }
 
-  async getRequests(userId: number | undefined): Promise<TypeOf<typeof getRequestsResponseSchema>> {
-    if (!userId) {
-      throw new NotFoundException('User not found');
-    }
-
+  async getRequests(userId: number): Promise<TypeOf<typeof getRequestsResponseSchema>> {
     const allRequests = await this.friendRepository.findAllByFriendIdAndStatus(
       userId,
       Status.PENDING,
@@ -263,13 +224,9 @@ export default class FriendsService {
   }
 
   async getStatus(
-    userId: number | undefined,
+    userId: number,
     parsed: TypeOf<typeof getStatusQuerySchema>,
   ): Promise<TypeOf<typeof friendResponseSchema>> {
-    if (!userId) {
-      throw new NotFoundException('User not found');
-    }
-
     if (userId !== parsed.userId) {
       throw new UnAuthorizedException('이 작업을 수행할 권한이 없습니다');
     }
