@@ -18,6 +18,7 @@ import {
   authenticateUserInputSchema,
   authenticateUserResponseSchema,
 } from './schemas/authenticate-user.schema.js';
+import { getProfileSchema, getProfileResponseSchema } from './schemas/get-profile.schema.js';
 
 export default class UsersService {
   constructor(
@@ -117,5 +118,29 @@ export default class UsersService {
     }
 
     return true;
+  }
+
+  async getMyProfile(userId: number | undefined): Promise<TypeOf<typeof getProfileResponseSchema>> {
+    if (!userId) {
+      throw new NotFoundException('User not found');
+    }
+
+    return {
+      status: STATUS.SUCCESS,
+      message: 'Profile retrieved successfully',
+      data: await this.getProfileData(userId),
+    };
+  }
+
+  private async getProfileData(id: number): Promise<TypeOf<typeof getProfileSchema>> {
+    const user = await this.userRepository.findById(id);
+    if (!user) {
+      throw new NotFoundException(`유저 ID ${id}를 찾을 수 없습니다`);
+    }
+
+    return {
+      nickname: user.nickname,
+      avatarUrl: user.avatarUrl,
+    };
   }
 }

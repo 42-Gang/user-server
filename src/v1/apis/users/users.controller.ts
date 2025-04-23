@@ -53,4 +53,9 @@ export default class UsersController {
       message: '이메일이 중복되지 않았습니다.',
     });
   };
+
+  getMyProfile = async (request: FastifyRequest, reply: FastifyReply) => {
+    const result = await this.usersService.getMyProfile(request.userId);
+    reply.status(200).send(result);
+  };
 }
