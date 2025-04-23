@@ -297,13 +297,13 @@ describe('getFriends', () => {
     expect(result.status).toBe('SUCCESS');
     expect(result.data.friends).toEqual([
       {
-        friend_id: 2,
+        friendId: 2,
         nickname: 'Alice',
         avatar_url: 'https://img1.com',
         status: Status.ACCEPTED,
       },
       {
-        friend_id: 3,
+        friendId: 3,
         nickname: 'Bob',
         avatar_url: 'https://img2.com',
         status: Status.BLOCKED,
@@ -380,7 +380,7 @@ describe('getRequests', () => {
 describe('getStatus', () => {
   it('친구 관계를 정상 조회해야 한다', async () => {
     const userId = 1;
-    const parsed = { user_id: 1, friend_id: 2 };
+    const parsed = { userId: 1, friendId: 2 };
     const mockFriend = { status: Status.ACCEPTED };
     mockFriendRepository.findByUserIdAndFriendId.mockResolvedValue(mockFriend);
 
@@ -391,19 +391,19 @@ describe('getStatus', () => {
 
   it('userId가 undefined일 경우 예외를 던져야 한다', async () => {
     const userId = undefined;
-    const parsed = { user_id: 1, friend_id: 2 };
+    const parsed = { userId: 1, friendId: 2 };
     await expect(friendsService.getStatus(userId, parsed)).rejects.toThrow(NotFoundException);
   });
 
   it('조회하려는 친구관계의 당사자가 아니면 UnAuthorizedException 예외를 던져야 한다', async () => {
     const userId = 1;
-    const parsed = { user_id: 2, friend_id: 3 };
+    const parsed = { userId: 2, friendId: 3 };
     await expect(friendsService.getStatus(userId, parsed)).rejects.toThrow(UnAuthorizedException);
   });
 
   it('친구 관계가 없으면 NotFoundException 예외를 던져야 한다', async () => {
     const userId = 1;
-    const parsed = { user_id: 1, friend_id: 3 };
+    const parsed = { userId: 1, friendId: 3 };
     mockFriendRepository.findByUserIdAndFriendId.mockResolvedValue(null);
 
     await expect(friendsService.getStatus(userId, parsed)).rejects.toThrow(NotFoundException);

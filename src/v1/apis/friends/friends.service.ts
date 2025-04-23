@@ -229,13 +229,13 @@ export default class FriendsService {
       throw new NotFoundException('User not found');
     }
 
-    if (userId !== parsed.user_id) {
+    if (userId !== parsed.userId) {
       throw new UnAuthorizedException('이 작업을 수행할 권한이 없습니다');
     }
 
     const friend = await this.friendRepository.findByUserIdAndFriendId({
       userId,
-      friendId: parsed.friend_id,
+      friendId: parsed.friendId,
     });
     if (!friend) {
       throw new NotFoundException('친구 관계를 찾을 수 없습니다.');
