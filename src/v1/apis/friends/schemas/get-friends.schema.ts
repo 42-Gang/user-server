@@ -13,9 +13,9 @@ export const friendListResponseSchema = createResponseSchema(
   z.object({
     friends: z.array(
       z.object({
-        friendId: z.number().int(),
+        friend_id: z.number().int(),
         nickname: z.string().min(2).max(8),
-        avatarUrl: z.string().url(),
+        avatar_url: z.string().url(),
         status: z.nativeEnum(Status),
       }),
     ),
