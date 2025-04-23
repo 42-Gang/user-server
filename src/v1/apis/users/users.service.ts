@@ -105,7 +105,9 @@ export default class UsersService {
 
     return {
       status: STATUS.SUCCESS,
-      data: users,
+      data: {
+        users,
+      },
     };
   }
 
