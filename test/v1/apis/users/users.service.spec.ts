@@ -148,7 +148,40 @@ describe('유저 검색', () => {
 
     expect(result.status).toBe(STATUS.SUCCESS);
     expect(result.data).toBeDefined();
-    expect(result.data!.length).toBe(2);
-    expect(result.data![0].nickname).toMatch(/^test/);
+    expect(result.data!.users.length).toBe(2);
+    expect(result.data!.users[0].nickname).toMatch(/^test/);
+  });
+});
+
+describe('내정보 확인', () => {
+  it('정상', async () => {
+    const userId = 1;
+    const mockUser = {
+      id: userId,
+      nickname: 'user1',
+      avatarUrl: 'https://example.com/avatar.png',
+    };
+    userRepository.findById = vi.fn().mockResolvedValue(mockUser);
+
+    const result = await usersService.getMyProfile(userId);
+    expect(result).toEqual({
+      status: 'SUCCESS',
+      message: 'Profile retrieved successfully',
+      data: {
+        nickname: mockUser.nickname,
+        avatarUrl: mockUser.avatarUrl,
+      },
+    });
+  });
+
+  it('userId가 undefined', async () => {
+    await expect(usersService.getMyProfile(undefined)).rejects.toThrow(NotFoundException);
+  });
+
+  it('유저 ID 없음', async () => {
+    const userId = 999;
+    userRepository.findById = vi.fn().mockResolvedValue(null);
+
+    await expect(usersService.getMyProfile(userId)).rejects.toThrow(NotFoundException);
   });
 });

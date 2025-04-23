@@ -15,6 +15,7 @@ import {
 } from './schemas/authenticate-user.schema.js';
 import { coreResponseSchema } from '../../common/schema/core.schema.js';
 import { checkDuplicatedEmailParamsSchema } from './schemas/check-duplicated-email.schema.js';
+import { getProfileResponseSchema } from './schemas/get-profile.schema.js';
 
 export default async function usersRoutes(fastify: FastifyInstance) {
   const usersController: UsersController = fastify.diContainer.resolve('usersController');
@@ -116,6 +117,21 @@ export default async function usersRoutes(fastify: FastifyInstance) {
         },
         auth: false,
         internalOnly: true,
+      },
+    },
+    {
+      method: 'GET',
+      url: '/me',
+      handler: usersController.getMyProfile,
+      options: {
+        schema: {
+          tags: ['users'],
+          description: '내 정보 확인',
+          response: {
+            200: getProfileResponseSchema,
+          },
+        },
+        auth: true,
       },
     },
   ];

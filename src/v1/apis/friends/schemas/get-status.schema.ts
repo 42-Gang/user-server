@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
 export const getStatusQuerySchema = z.object({
-  user_id: z.coerce.number().int(),
-  friend_id: z.coerce.number().int(),
+  userId: z.coerce.number().int(),
+  friendId: z.coerce.number().int(),
 });
