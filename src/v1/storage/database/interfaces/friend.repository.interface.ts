@@ -1,11 +1,20 @@
-import { Prisma, Friend as friend, Status } from '@prisma/client';
+import { Prisma, Status, Friend } from '@prisma/client';
 import { BaseRepositoryInterface } from './base.repository.interface.js';
 
 export default interface FriendRepositoryInterface
-  extends BaseRepositoryInterface<friend, Prisma.FriendCreateInput, Prisma.FriendUpdateInput> {
-  findAllByUserIdAndStatus(userId: number, status: Status): Promise<friend[]>;
+  extends BaseRepositoryInterface<Friend, Prisma.FriendCreateInput, Prisma.FriendUpdateInput> {
+  findAllByUserIdAndStatus(userId: number, status: Status): Promise<Friend[]>;
 
-  findAllByFriendIdAndStatus(friendId: number, status: Status): Promise<friend[]>;
+  findAllByUserIdAndStatuses(
+    userId: number,
+    statuses: Status[],
+  ): Promise<
+    Prisma.FriendGetPayload<{
+      include: { friend: true };
+    }>[]
+  >;
+
+  findAllByFriendIdAndStatus(friendId: number, status: Status): Promise<Friend[]>;
 
   findByUserIdAndFriendId({
     userId,
@@ -13,7 +22,7 @@ export default interface FriendRepositoryInterface
   }: {
     userId: number;
     friendId: number;
-  }): Promise<friend | null>;
+  }): Promise<Friend | null>;
 
-  findAllByUserId(userId: number): Promise<friend[]>;
+  findAllByUserId(userId: number): Promise<Friend[]>;
 }
