@@ -30,7 +30,11 @@ export default class UsersService {
     body: TypeOf<typeof createUserInputSchema>,
   ): Promise<TypeOf<typeof createUserResponseSchema>> {
     if (await this.userRepository.findByEmail(body.email)) {
-      throw new ConflictException('이미 가입한 사용자입니다.');
+      throw new ConflictException('이미 가입한 이메일입니다.');
+    }
+
+    if (await this.userRepository.findByNickname(body.nickname)) {
+      throw new ConflictException('닉네임은 중복될 수 없습니다.');
     }
 
     const passwordHash = await this.crypt.hash(body.password, 10);
