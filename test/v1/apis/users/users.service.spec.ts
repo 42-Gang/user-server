@@ -127,12 +127,6 @@ describe('닉네임 수정', () => {
     expect(result.data!.nickname).toBe('newNick');
   });
 
-  it('유저 ID 없음', async () => {
-    await expect(usersService.editNickname(undefined, { nickname: 'test' })).rejects.toThrow(
-      NotFoundException,
-    );
-  });
-
   it('업데이트 실패', async () => {
     userRepository.update = vi.fn().mockResolvedValue(null);
 
@@ -154,8 +148,8 @@ describe('유저 검색', () => {
 
     expect(result.status).toBe(STATUS.SUCCESS);
     expect(result.data).toBeDefined();
-    expect(result.data!.length).toBe(2);
-    expect(result.data![0].nickname).toMatch(/^test/);
+    expect(result.data!.users.length).toBe(2);
+    expect(result.data!.users[0].nickname).toMatch(/^test/);
   });
 });
 

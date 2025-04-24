@@ -24,14 +24,14 @@ export default class FriendsService {
   async request(userId: number, friendId: number): Promise<TypeOf<typeof friendResponseSchema>> {
     const recipient = await this.userRepository.findById(friendId);
     if (!recipient) {
-      throw new NotFoundException('Recipient user not found');
+      throw new NotFoundException('친구 요청을 받는 사용자가 존재하지 않습니다.');
     }
     if (userId == friendId) {
-      throw new BadRequestException('');
+      throw new BadRequestException('자기 자신에게는 친구 요청을 보낼 수 없습니다.');
     }
     const request = await this.friendRepository.findByUserIdAndFriendId({ userId, friendId });
     if (request) {
-      throw new ConflictException('Friend Request already exists');
+      throw new ConflictException('이미 친구 요청 내역이 존재합니다.');
     }
 
     await this.friendRepository.create({
@@ -42,7 +42,7 @@ export default class FriendsService {
 
     return {
       status: STATUS.SUCCESS,
-      message: 'Request processed successfully',
+      message: '친구 요청을 보냈습니다.',
     };
   }
 
@@ -79,10 +79,10 @@ export default class FriendsService {
       friendId: userId,
     });
     if (!friendRequest) {
-      throw new NotFoundException('Friend request not found');
+      throw new NotFoundException('친구 요청을 찾을 수 없습니다.');
     }
     if (friendRequest.status !== Status.PENDING) {
-      throw new ConflictException('Only pending requests can be rejected');
+      throw new ConflictException('대기 요청이 아닙니다.');
     }
 
     await this.friendRepository.update(friendRequest.id, {
@@ -91,41 +91,41 @@ export default class FriendsService {
 
     return {
       status: STATUS.SUCCESS,
-      message: 'Friend request rejected successfully',
+      message: '친구 요청을 거절했습니다.',
     };
   }
 
   async block(userId: number, friendId: number): Promise<TypeOf<typeof friendResponseSchema>> {
     const friend = await this.friendRepository.findByUserIdAndFriendId({ userId, friendId });
     if (!friend) {
-      throw new NotFoundException('Friend request not found');
+      throw new NotFoundException('친구 관계를 찾을 수 없습니다.');
     }
     if (friend.status !== Status.ACCEPTED) {
-      throw new ConflictException('Only accepted friends can be blocked');
+      throw new ConflictException('친구만 차단할 수 있습니다.');
     }
 
     await this.friendRepository.update(friend.id, { status: Status.BLOCKED });
 
     return {
       status: STATUS.SUCCESS,
-      message: 'Friend has been blocked successfully',
+      message: '친구를 차단했습니다.',
     };
   }
 
   async unblock(userId: number, friendId: number): Promise<TypeOf<typeof friendResponseSchema>> {
     const friend = await this.friendRepository.findByUserIdAndFriendId({ userId, friendId });
     if (!friend) {
-      throw new NotFoundException('Friend request not found');
+      throw new NotFoundException('친구 관계를 찾을 수 없습니다.');
     }
     if (friend.status !== Status.BLOCKED) {
-      throw new ConflictException('Only blocked friends can be unblocked');
+      throw new ConflictException('차단된 친구만 차단을 해제할 수 있습니다.');
     }
 
     await this.friendRepository.update(friend.id, { status: Status.ACCEPTED });
 
     return {
       status: STATUS.SUCCESS,
-      message: 'Friend has been unblocked successfully',
+      message: '친구를 차단 해제했습니다.',
     };
   }
 
@@ -168,7 +168,7 @@ export default class FriendsService {
 
     return {
       status: STATUS.SUCCESS,
-      message: 'Friend list retrieved successfully',
+      message: '친구 목록이 성공적으로 조회되었습니다.',
       data: {
         friends: friendsData,
       },
@@ -197,7 +197,7 @@ export default class FriendsService {
 
     return {
       status: STATUS.SUCCESS,
-      message: 'Friend requests retrieved successfully',
+      message: '친구 요청 목록이 성공적으로 조회되었습니다.',
       data: {
         requests: requestsData,
       },
@@ -223,7 +223,7 @@ export default class FriendsService {
 
     return {
       status: STATUS.SUCCESS,
-      message: 'Friend status retrieved successfully',
+      message: '친구 관계가 성공적으로 조회되었습니다.',
       data: {
         status: friend.status,
       },

@@ -30,7 +30,7 @@ export default class UsersService {
     body: TypeOf<typeof createUserInputSchema>,
   ): Promise<TypeOf<typeof createUserResponseSchema>> {
     if (await this.userRepository.findByEmail(body.email)) {
-      throw new ConflictException('User already exists');
+      throw new ConflictException('이미 가입한 사용자입니다.');
     }
 
     const passwordHash = await this.crypt.hash(body.password, 10);
@@ -73,7 +73,7 @@ export default class UsersService {
   async getUser(id: number): Promise<TypeOf<typeof getUserResponseSchema>> {
     const user = await this.userRepository.findById(id);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('존재하지 않는 사용자입니다.');
     }
 
     return {
@@ -83,16 +83,12 @@ export default class UsersService {
   }
 
   async editNickname(
-    id: number | undefined,
+    id: number,
     body: TypeOf<typeof editNicknameInputSchema>,
   ): Promise<TypeOf<typeof editNicknameResponseSchema>> {
-    if (!id) {
-      throw new NotFoundException('User not found');
-    }
-
     const user = await this.userRepository.update(id, body);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('사용자 정보를 업데이트할 수 없습니다.');
     }
 
     return {
