@@ -247,8 +247,8 @@ describe('친구 요청 목록 조회', () => {
   it('정상', async () => {
     friendRepository.findAllByFriendIdAndStatus = vi.fn().mockResolvedValue([
       {
-        friendId: 2,
-        friend: {
+        userId: 2,
+        user: {
           nickname: 'friend2',
           avatarUrl: 'url2',
         },
@@ -257,6 +257,7 @@ describe('친구 요청 목록 조회', () => {
 
     const result = await friendsService.getRequests(1);
     expect(result.status).toBe(STATUS.SUCCESS);
+    console.log(result.data?.requests)
     expect(result.data?.requests).toEqual([
       {
         friendId: 2,

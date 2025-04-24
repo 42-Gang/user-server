@@ -158,9 +158,9 @@ export default class FriendsService {
     });
 
     const requests = allRequests.map((request) => ({
-      friendId: request.friendId,
-      nickname: request.friend.nickname,
-      avatarUrl: request.friend.avatarUrl,
+      friendId: request.userId,
+      nickname: request.user.nickname,
+      avatarUrl: request.user.avatarUrl,
     }));
 
     return {

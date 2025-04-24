@@ -17,7 +17,7 @@ export default interface FriendRepositoryInterface
 
   findAllByFriendIdAndStatus(input: { friendId: number; status: Status }): Promise<
     Prisma.FriendGetPayload<{
-      include: { friend: true };
+      include: { user: true };
     }>[]
   >;
 
