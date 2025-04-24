@@ -1,4 +1,3 @@
-import { FriendCacheInterface } from '../../storage/cache/interfaces/friend.cache.interface.js';
 import { friendsSchema, statusSchema } from './friends.schema.js';
 import { TypeOf } from 'zod';
 import FriendRepositoryInterface from '../../storage/database/interfaces/friend.repository.interface.js';
@@ -6,7 +5,7 @@ import { NotFoundException } from '../../common/exceptions/core.error.js';
 
 export default class StatusService {
   constructor(
-    private readonly friendCacheRepository: FriendCacheInterface,
+    // private readonly friendCacheRepository: FriendCacheInterface,
     private readonly friendRepository: FriendRepositoryInterface,
   ) {}
 
@@ -17,7 +16,7 @@ export default class StatusService {
     const friends = await this.friendRepository.findAllByUserIdAndStatus(userId, 'ACCEPTED');
 
     friendsSchema.parse(friends);
-    await this.friendCacheRepository.addFriends(userId, friends);
+    // await this.friendCacheRepository.addFriends(userId, friends);
     return friends;
   }
 
@@ -33,7 +32,7 @@ export default class StatusService {
       friendId,
     });
     if (!foundFriend) {
-      throw new NotFoundException('Friend not found');
+      throw new NotFoundException('친구 관계를 찾을 수 없습니다.');
     }
 
     return {

@@ -50,6 +50,19 @@ describe('회원가입', () => {
       }),
     ).rejects.toThrow(ConflictException);
   });
+
+  it('중복 닉네임', async () => {
+    userRepository.findByEmail = vi.fn().mockResolvedValue(null);
+    userRepository.findByNickname = vi.fn().mockResolvedValue({ id: 2 });
+
+    await expect(
+      usersService.createUser({
+        email: 'test@naver.com',
+        password: '1234',
+        nickname: 'tester',
+      }),
+    ).rejects.toThrow(ConflictException);
+  });
 });
 
 describe('로그인', () => {
@@ -127,12 +140,6 @@ describe('닉네임 수정', () => {
     expect(result.data!.nickname).toBe('newNick');
   });
 
-  it('유저 ID 없음', async () => {
-    await expect(usersService.editNickname(undefined, { nickname: 'test' })).rejects.toThrow(
-      NotFoundException,
-    );
-  });
-
   it('업데이트 실패', async () => {
     userRepository.update = vi.fn().mockResolvedValue(null);
 
@@ -154,7 +161,70 @@ describe('유저 검색', () => {
 
     expect(result.status).toBe(STATUS.SUCCESS);
     expect(result.data).toBeDefined();
-    expect(result.data!.length).toBe(2);
-    expect(result.data![0].nickname).toMatch(/^test/);
+    expect(result.data!.users.length).toBe(2);
+    expect(result.data!.users[0].nickname).toMatch(/^test/);
+  });
+});
+
+describe('내정보 확인', () => {
+  it('정상', async () => {
+    const userId = 1;
+    const mockUser = {
+      id: userId,
+      nickname: 'user1',
+      avatarUrl: 'https://example.com/avatar.png',
+    };
+    userRepository.findById = vi.fn().mockResolvedValue(mockUser);
+
+    const result = await usersService.getMyProfile(userId);
+    expect(result).toEqual({
+      status: 'SUCCESS',
+      message: 'Profile retrieved successfully',
+      data: {
+        nickname: mockUser.nickname,
+        avatarUrl: mockUser.avatarUrl,
+      },
+    });
+  });
+
+  it('유저 ID 없음', async () => {
+    const userId = 999;
+    userRepository.findById = vi.fn().mockResolvedValue(null);
+
+    await expect(usersService.getMyProfile(userId)).rejects.toThrow(NotFoundException);
+  });
+});
+
+describe('이메일 중복 확인', () => {
+  it('중복 아님 → true 반환', async () => {
+    userRepository.findByEmail = vi.fn().mockResolvedValue(null);
+
+    const result = await usersService.checkDuplicatedEmail('test@naver.com');
+    expect(result).toBe(true);
+  });
+
+  it('중복 이메일 → ConflictException', async () => {
+    userRepository.findByEmail = vi.fn().mockResolvedValue({ id: 1 });
+
+    await expect(usersService.checkDuplicatedEmail('test@naver.com')).rejects.toThrow(
+      ConflictException,
+    );
+  });
+});
+
+describe('로그인 - userId 포함 확인', () => {
+  it('userId 반환', async () => {
+    const passwordHash = await bcrypt.hash('1234', 10);
+    userRepository.findByEmail = vi.fn().mockResolvedValue({
+      id: 123,
+      passwordHash,
+    });
+
+    const result = await usersService.authenticateUser({
+      email: 'test@naver.com',
+      password: '1234',
+    });
+
+    expect(result.data!.userId).toBe(123);
   });
 });

@@ -38,4 +38,12 @@ export default class UserRepositoryPrisma implements UserRepositoryInterface {
       take: 10,
     });
   }
+
+  findByNickname(nickname: string): Promise<User | null> {
+    return this.prisma.user.findUnique({
+      where: {
+        nickname,
+      },
+    });
+  }
 }
