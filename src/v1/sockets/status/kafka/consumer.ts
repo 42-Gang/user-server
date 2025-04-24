@@ -1,5 +1,4 @@
 import { Namespace } from 'socket.io';
-import { FriendCacheInterface } from '../../../storage/cache/interfaces/friend.cache.interface.js';
 import { TOPICS, GROUP_IDS, USER_STATUS_EVENTS, FRIEND_EVENTS } from './constants.js';
 import { kafka } from '../../../../plugins/kafka.js';
 import FriendConsumer from './friend.consumer.js';
@@ -58,14 +57,11 @@ async function handleUserStatusTopic(messageValue: string, userStatusConsumer: U
   return;
 }
 
-export async function startConsumer(
-  namespace: Namespace,
-  friendCacheRepository: FriendCacheInterface,
-) {
+export async function startConsumer(namespace: Namespace) {
   await consumer.connect();
   await consumer.subscribe({ topic: TOPICS.USER_STATUS, fromBeginning: true });
   await consumer.subscribe({ topic: TOPICS.FRIEND, fromBeginning: true });
-  const friendConsumer = new FriendConsumer(namespace, friendCacheRepository);
+  const friendConsumer = new FriendConsumer(namespace);
   const userStatusConsumer = new UserStatusConsumer(namespace);
 
   await consumer.run({
