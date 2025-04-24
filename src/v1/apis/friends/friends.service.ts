@@ -142,7 +142,6 @@ export default class FriendsService {
       status: result.status,
     }));
 
-    console.log(fetchResults);
     return {
       status: STATUS.SUCCESS,
       message: '친구 목록이 성공적으로 조회되었습니다.',
