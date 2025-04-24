@@ -18,6 +18,7 @@ import {
   authenticateUserInputSchema,
   authenticateUserResponseSchema,
 } from './schemas/authenticate-user.schema.js';
+import { getProfileSchema, getProfileResponseSchema } from './schemas/get-profile.schema.js';
 
 export default class UsersService {
   constructor(
@@ -29,7 +30,11 @@ export default class UsersService {
     body: TypeOf<typeof createUserInputSchema>,
   ): Promise<TypeOf<typeof createUserResponseSchema>> {
     if (await this.userRepository.findByEmail(body.email)) {
-      throw new ConflictException('User already exists');
+      throw new ConflictException('이미 가입한 이메일입니다.');
+    }
+
+    if (await this.userRepository.findByNickname(body.nickname)) {
+      throw new ConflictException('닉네임은 중복될 수 없습니다.');
     }
 
     const passwordHash = await this.crypt.hash(body.password, 10);
@@ -72,7 +77,7 @@ export default class UsersService {
   async getUser(id: number): Promise<TypeOf<typeof getUserResponseSchema>> {
     const user = await this.userRepository.findById(id);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('존재하지 않는 사용자입니다.');
     }
 
     return {
@@ -82,16 +87,12 @@ export default class UsersService {
   }
 
   async editNickname(
-    id: number | undefined,
+    id: number,
     body: TypeOf<typeof editNicknameInputSchema>,
   ): Promise<TypeOf<typeof editNicknameResponseSchema>> {
-    if (!id) {
-      throw new NotFoundException('User not found');
-    }
-
     const user = await this.userRepository.update(id, body);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('사용자 정보를 업데이트할 수 없습니다.');
     }
 
     return {
@@ -105,7 +106,9 @@ export default class UsersService {
 
     return {
       status: STATUS.SUCCESS,
-      data: users,
+      data: {
+        users,
+      },
     };
   }
 
@@ -117,5 +120,25 @@ export default class UsersService {
     }
 
     return true;
+  }
+
+  async getMyProfile(userId: number): Promise<TypeOf<typeof getProfileResponseSchema>> {
+    return {
+      status: STATUS.SUCCESS,
+      message: 'Profile retrieved successfully',
+      data: await this.getProfileData(userId),
+    };
+  }
+
+  private async getProfileData(id: number): Promise<TypeOf<typeof getProfileSchema>> {
+    const user = await this.userRepository.findById(id);
+    if (!user) {
+      throw new NotFoundException(`유저 ID ${id}를 찾을 수 없습니다`);
+    }
+
+    return {
+      nickname: user.nickname,
+      avatarUrl: user.avatarUrl,
+    };
   }
 }

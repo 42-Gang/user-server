@@ -6,4 +6,8 @@ export const searchUserParamsSchema = userSchema.pick({
   nickname: true,
 });
 
-export const searchUserResponseSchema = createResponseSchema(z.array(exceptedSensitiveFields));
+export const searchUserResponseSchema = createResponseSchema(
+  z.object({
+    users: z.array(exceptedSensitiveFields),
+  }),
+);
