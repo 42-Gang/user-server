@@ -245,41 +245,25 @@ describe('친구 목록 조회', () => {
 
 describe('친구 요청 목록 조회', () => {
   it('정상', async () => {
-    friendRepository.findAllByFriendIdAndStatus = vi.fn().mockResolvedValue([{ userId: 2 }]);
-    userRepository.findById = vi.fn().mockResolvedValue({
-      id: 2,
-      nickname: 'nick2',
-      avatarUrl: 'url2',
-    });
+    friendRepository.findAllByFriendIdAndStatus = vi.fn().mockResolvedValue([
+      {
+        friendId: 2,
+        friend: {
+          nickname: 'friend2',
+          avatarUrl: 'url2',
+        },
+      },
+    ]);
 
     const result = await friendsService.getRequests(1);
-
     expect(result.status).toBe(STATUS.SUCCESS);
-    expect(result.data!.requests.length).toBe(1);
-    expect(result.data!.requests[0].nickname).toBe('nick2');
-  });
-
-  it('프로필 없음', async () => {
-    friendRepository.findAllByFriendIdAndStatus = vi.fn().mockResolvedValue([{ userId: 2 }]);
-    userRepository.findById = vi.fn().mockResolvedValue(null);
-
-    await expect(friendsService.getRequests(1)).rejects.toThrow(NotFoundException);
-  });
-
-  it('친구 요청 목록 다수 정상', async () => {
-    friendRepository.findAllByFriendIdAndStatus = vi
-      .fn()
-      .mockResolvedValue([{ userId: 2 }, { userId: 3 }]);
-
-    userRepository.findById = vi
-      .fn()
-      .mockResolvedValueOnce({ id: 2, nickname: 'user2', avatarUrl: 'url2' })
-      .mockResolvedValueOnce({ id: 3, nickname: 'user3', avatarUrl: 'url3' });
-
-    const result = await friendsService.getRequests(1);
-
-    expect(result.data!.requests).toHaveLength(2);
-    expect(result.data!.requests[1].nickname).toBe('user3');
+    expect(result.data?.requests).toEqual([
+      {
+        friendId: 2,
+        nickname: 'friend2',
+        avatarUrl: 'url2',
+      },
+    ]);
   });
 });
 
