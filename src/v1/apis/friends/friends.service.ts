@@ -136,9 +136,9 @@ export default class FriendsService {
     const fetchResults = await this.friendRepository.findAllByUserIdAndStatuses(userId, statuses);
 
     const friends = fetchResults.map((result) => ({
-      friend_id: result.friendId,
+      friendId: result.friendId,
       nickname: result.friend.nickname,
-      avatar_url: result.friend.avatarUrl,
+      avatarUrl: result.friend.avatarUrl,
       status: result.status,
     }));
 
@@ -165,9 +165,9 @@ export default class FriendsService {
           throw new NotFoundException(`유저 ID ${userId}를 찾을 수 없습니다`);
         }
         return {
-          user_id: userId,
+          userId: userId,
           nickname: profile.nickname,
-          avatar_url: profile.avatarUrl,
+          avatarUrl: profile.avatarUrl,
         };
       }),
     );
