@@ -35,8 +35,8 @@ export default class FriendsService {
     }
 
     await this.friendRepository.create({
-      userId,
-      friendId,
+      user: { connect: { id: userId } },
+      friend: { connect: { id: friendId } },
       status: Status.PENDING,
     });
 
@@ -222,8 +222,8 @@ export default class FriendsService {
 
     // 존재하지 않으면 생성 (수락 상태)
     await this.friendRepository.create({
-      userId: friendRequest.friendId,
-      friendId: friendRequest.userId,
+      user: { connect: { id: friendRequest.friendId } },
+      friend: { connect: { id: friendRequest.userId } },
       status: Status.ACCEPTED,
     });
   }
