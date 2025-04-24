@@ -1,389 +1,311 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import FriendsService from '../../../../src/v1/apis/friends/friends.service.js';
 import { STATUS } from '../../../../src/v1/common/constants/status.js';
 import {
-  NotFoundException,
   ConflictException,
+  NotFoundException,
   BadRequestException,
   UnAuthorizedException,
 } from '../../../../src/v1/common/exceptions/core.error.js';
 import { Status } from '@prisma/client';
-import FriendRepositoryInterface from '../../../../src/v1/storage/database/interfaces/friend.repository.interface.js';
 import UserRepositoryInterface from '../../../../src/v1/storage/database/interfaces/user.repository.interface.js';
-import FriendsService from '../../../../src/v1/apis/friends/friends.service.js';
+import FriendRepositoryInterface from '../../../../src/v1/storage/database/interfaces/friend.repository.interface.js';
+import UserRepositoryPrisma from '../../../../src/v1/storage/database/prisma/user.repository.js';
+import mockPrisma from '../../mocks/mockPrisma.js';
+import FriendRepositoryPrisma from '../../../../src/v1/storage/database/prisma/friend.repository.js';
 
-const mockUserRepository: UserRepositoryInterface = {
-  create: vi.fn(),
-  findByEmail: vi.fn(),
-  delete: vi.fn(),
-  update: vi.fn(),
-  findAll: vi.fn(),
-  findById: vi.fn(),
-  findByNicknameStartsWith: vi.fn(),
-};
-
-const mockFriendRepository: FriendRepositoryInterface = {
-  create: vi.fn(),
-  findById: vi.fn(),
-  findAll: vi.fn(),
-  update: vi.fn(),
-  delete: vi.fn(),
-  findAllByUserIdAndStatus: vi.fn(),
-  findAllByFriendIdAndStatus: vi.fn(),
-  findByUserIdAndFriendId: vi.fn(),
-  findAllByUserId: vi.fn(),
-};
-
+let userRepository: UserRepositoryInterface;
+let friendRepository: FriendRepositoryInterface;
 let friendsService: FriendsService;
+
 beforeEach(() => {
-  vi.clearAllMocks();
-  friendsService = new FriendsService(mockUserRepository, mockFriendRepository);
+  userRepository = new UserRepositoryPrisma(mockPrisma);
+  friendRepository = new FriendRepositoryPrisma(mockPrisma);
+
+  friendsService = new FriendsService(userRepository, friendRepository);
 });
-describe('request', () => {
-  it('정상적인 친구 요청을 처리해야 함', async () => {
-    const userId = 1;
-    const friendId = 2;
-    (mockUserRepository.findById as ReturnType<typeof vi.fn>).mockResolvedValue({
-      id: 2,
-    });
-    (mockFriendRepository.findByUserIdAndFriendId as ReturnType<typeof vi.fn>).mockResolvedValue(
-      null,
-    );
-    (mockFriendRepository.create as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
-    const result = await friendsService.request(userId, friendId);
-    expect(result).toEqual({
-      status: STATUS.SUCCESS,
-      message: '친구 요청을 보냈습니다.',
-    });
+
+describe('친구 요청', () => {
+  it('정상', async () => {
+    userRepository.findById = vi.fn().mockResolvedValue({ id: 2 });
+    friendRepository.findByUserIdAndFriendId = vi.fn().mockResolvedValue(null);
+    friendRepository.create = vi.fn().mockResolvedValue(undefined);
+
+    const result = await friendsService.request(1, 2);
+
+    expect(result.status).toBe(STATUS.SUCCESS);
+    expect(result.message).toBe('친구 요청을 보냈습니다.');
   });
-  it('friendId 유저가 존재하지 않으면 NotFoundException을 던져야 함', async () => {
-    (mockUserRepository.findById as ReturnType<typeof vi.fn>).mockResolvedValue(null);
-    await expect(friendsService.request(1, 999)).rejects.toThrow(NotFoundException);
-  });
-  it('자기 자신에게 친구 요청 시 BadRequestException을 던져야 함', async () => {
-    (mockUserRepository.findById as ReturnType<typeof vi.fn>).mockResolvedValue({
-      id: 1,
-    });
+
+  it('자기 자신에게 요청 시도', async () => {
+    userRepository.findById = vi.fn().mockResolvedValue({ id: 2 });
     await expect(friendsService.request(1, 1)).rejects.toThrow(BadRequestException);
   });
-  it('이미 친구 요청이 있는 경우 ConflictException을 던져야 함', async () => {
-    (mockUserRepository.findById as ReturnType<typeof vi.fn>).mockResolvedValue({
-      id: 2,
-    });
-    (mockFriendRepository.findByUserIdAndFriendId as ReturnType<typeof vi.fn>).mockResolvedValue({
-      id: 1,
-    })
+
+  it('상대 유저가 없음', async () => {
+    userRepository.findById = vi.fn().mockResolvedValue(null);
+    await expect(friendsService.request(1, 999)).rejects.toThrow(NotFoundException);
+  });
+
+  it('이미 요청 존재', async () => {
+    userRepository.findById = vi.fn().mockResolvedValue({ id: 2 });
+    friendRepository.findByUserIdAndFriendId = vi.fn().mockResolvedValue({ id: 123 });
+
     await expect(friendsService.request(1, 2)).rejects.toThrow(ConflictException);
   });
 });
-describe('accept', () => {
-  it('정상적으로 친구 요청을 수락해야 함', async () => {
-    const userId = 1;
-    const senderId = 2;
 
-    (mockFriendRepository.findByUserIdAndFriendId as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-      id: 1,
-      userId: senderId,
-      friendId: userId,
-      status: Status.PENDING,
-    })
-    // 역방향 친구 관계 없음
-    .mockResolvedValueOnce(null);
-    (mockFriendRepository.update as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
-    (mockFriendRepository.create as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
-    const result = await friendsService.accept(senderId, userId);
-    expect(mockFriendRepository.update).toHaveBeenCalledWith(1, {
+describe('친구 요청 수락', () => {
+  it('정상', async () => {
+    const request = { id: 1, userId: 2, friendId: 1, status: Status.PENDING };
+
+    friendRepository.findByUserIdAndFriendId = vi
+      .fn()
+      .mockResolvedValueOnce(request)
+      .mockResolvedValueOnce(null); // reverse 없음
+
+    friendRepository.update = vi.fn().mockResolvedValue(undefined);
+    friendRepository.create = vi.fn().mockResolvedValue(undefined);
+
+    const result = await friendsService.accept(1, 2);
+
+    expect(result.status).toBe(STATUS.SUCCESS);
+    expect(result.message).toBe('친구 요청을 수락했습니다.');
+  });
+
+  it('요청이 존재하지 않음', async () => {
+    friendRepository.findByUserIdAndFriendId = vi.fn().mockResolvedValue(null);
+    await expect(friendsService.accept(1, 2)).rejects.toThrow(NotFoundException);
+  });
+
+  it('대기 상태 아님', async () => {
+    friendRepository.findByUserIdAndFriendId = vi.fn().mockResolvedValue({
       status: Status.ACCEPTED,
     });
-    expect(mockFriendRepository.create).toHaveBeenCalledWith({
-      userId: userId, // reverse direction
-      friendId: senderId,
-      status: Status.ACCEPTED,
-    });
+
+    await expect(friendsService.accept(1, 2)).rejects.toThrow(ConflictException);
+  });
+
+  it('친구 요청 수락 시 reverse 관계가 존재하면 update만 수행', async () => {
+    const request = { id: 1, userId: 2, friendId: 1, status: Status.PENDING };
+
+    friendRepository.findByUserIdAndFriendId = vi
+      .fn()
+      .mockResolvedValueOnce(request) // 첫 번째: 요청 찾기
+      .mockResolvedValueOnce({ id: 99, status: Status.PENDING }); // 두 번째: reverse 존재
+
+    friendRepository.update = vi.fn().mockResolvedValue(undefined);
+
+    const result = await friendsService.accept(1, 2);
+
+    expect(friendRepository.update).toHaveBeenCalledWith(99, { status: Status.ACCEPTED });
     expect(result.status).toBe(STATUS.SUCCESS);
   });
-  it('친구 요청이 존재하지 않으면 NotFoundException을 던져야 함', async () => {
-    (mockFriendRepository.findByUserIdAndFriendId as ReturnType<typeof vi.fn>).mockResolvedValue(
-      null,
-    );
-    await expect(() => friendsService.accept(2, 1)).rejects.toThrow(NotFoundException);
-  });
-  it('요청 상태가 PENDING이 아니면 ConflictException을 던져야 함', async () => {
+
+  it('친구 수락 시 reverseFriend가 존재하면 update만 호출', async () => {
     const friendRequest = {
-      id: 11,
-      userId: 1,
-      friendId: 2,
-      status: Status.ACCEPTED, // 이미 수락된 상태
-    };
-    (mockFriendRepository.findByUserIdAndFriendId as ReturnType<typeof vi.fn>).mockResolvedValue(
-      friendRequest,
-    );
-    await expect(() => friendsService.accept(2, 1)).rejects.toThrow(ConflictException);
-  });
-  it('둘다 친구요청을 했을 때', async () => {
-    const friendRequest = {
-      id: 11,
-      userId: 1,
-      friendId: 2,
-      status: Status.PENDING,
-    };
-    const reversedfriendRequest = {
-      id: 12,
+      id: 10,
       userId: 2,
       friendId: 1,
       status: Status.PENDING,
     };
-    (
-      mockFriendRepository.findByUserIdAndFriendId as ReturnType<typeof vi.fn>
-    ).mockResolvedValueOnce(friendRequest);
-    (
-      mockFriendRepository.findByUserIdAndFriendId as ReturnType<typeof vi.fn>
-    ).mockResolvedValueOnce(reversedfriendRequest);
-    const result = await friendsService.accept(2, 1);
-    expect(result.status).toEqual(STATUS.SUCCESS);
+
+    friendRepository.findByUserIdAndFriendId = vi
+      .fn()
+      .mockResolvedValueOnce(friendRequest) // 수락할 요청
+      .mockResolvedValueOnce({ id: 99 }); // reverseFriend 존재
+
+    friendRepository.update = vi.fn().mockResolvedValue(undefined);
+    friendRepository.create = vi.fn(); // 호출되지 않아야 함
+
+    const result = await friendsService.accept(1, 2);
+
+    expect(friendRepository.update).toHaveBeenCalledWith(10, { status: Status.ACCEPTED });
+    expect(friendRepository.update).toHaveBeenCalledWith(99, { status: Status.ACCEPTED });
+    expect(friendRepository.create).not.toHaveBeenCalled();
+    expect(result.status).toBe(STATUS.SUCCESS);
   });
 });
-describe('reject', () => {
-  it('정상적인 친구 요청 거절을 처리해야 함', async () => {
-    const friendRequest = {
-      id: 22,
-      userId: 2,
-      friendId: 1,
+
+describe('친구 요청 거절', () => {
+  it('정상', async () => {
+    friendRepository.findByUserIdAndFriendId = vi.fn().mockResolvedValue({
+      id: 1,
       status: Status.PENDING,
-    };
-    (mockFriendRepository.findByUserIdAndFriendId as ReturnType<typeof vi.fn>).mockResolvedValue(
-      friendRequest,
-    );
-    (mockFriendRepository.update as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
-    const result = await friendsService.reject(1, 2); // friendId=1이 보낸 요청을 userId=2가 거절
-    expect(result).toEqual({
-      status: STATUS.SUCCESS,
-      message: '친구 요청을 거절했습니다.',
     });
+    friendRepository.update = vi.fn().mockResolvedValue(undefined);
+
+    const result = await friendsService.reject(1, 2);
+
+    expect(result.status).toBe(STATUS.SUCCESS);
+    expect(result.message).toBe('친구 요청을 거절했습니다.');
   });
-  it('친구 요청이 존재하지 않으면 NotFoundException을 던져야 함', async () => {
-    (mockFriendRepository.findByUserIdAndFriendId as ReturnType<typeof vi.fn>).mockResolvedValue(
-      null,
-    );
-    await expect(() => friendsService.reject(2, 1)).rejects.toThrowError(NotFoundException);
+
+  it('요청 없음', async () => {
+    friendRepository.findByUserIdAndFriendId = vi.fn().mockResolvedValue(null);
+    await expect(friendsService.reject(1, 2)).rejects.toThrow(NotFoundException);
   });
-  it('요청 상태가 PENDING이 아니면 ConflictException을 던져야 함', async () => {
-    const friendRequest = {
-      id: 22,
-      userId: 1,
-      friendId: 2,
+
+  it('대기 요청이 아님', async () => {
+    friendRepository.findByUserIdAndFriendId = vi.fn().mockResolvedValue({
       status: Status.ACCEPTED,
-    };
-    (mockFriendRepository.findByUserIdAndFriendId as ReturnType<typeof vi.fn>).mockResolvedValue(
-      friendRequest,
-    );
-    await expect(() => friendsService.reject(2, 1)).rejects.toThrowError(ConflictException);
+    });
+
+    await expect(friendsService.reject(1, 2)).rejects.toThrow(ConflictException);
   });
 });
-describe('block', () => {
-  it('정상적인 친구 요청 차단을 처리해야 함', async () => {
-    const mockRequest = {
+
+describe('친구 차단', () => {
+  it('정상', async () => {
+    friendRepository.findByUserIdAndFriendId = vi.fn().mockResolvedValue({
       id: 1,
-      userId: 1,
-      friendId: 2,
       status: Status.ACCEPTED,
-    };
-    // 친구 요청이 있는 경우
-    (mockFriendRepository.findByUserIdAndFriendId as ReturnType<typeof vi.fn>).mockResolvedValue(
-      mockRequest,
-    );
-    // 상태 업데이트 성공
-    (mockFriendRepository.update as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
-    const result = await friendsService.block(2, 1); // friendId=1이 보낸 요청을 userId=2가 차단
-    expect(result).toEqual({
-      status: STATUS.SUCCESS,
-      message: '친구를 차단했습니다.',
     });
+    friendRepository.update = vi.fn().mockResolvedValue(undefined);
+
+    const result = await friendsService.block(1, 2);
+
+    expect(result.status).toBe(STATUS.SUCCESS);
+    expect(result.message).toBe('친구를 차단했습니다.');
   });
-  it('친구 관계가 없으면 예외를 던져야 함', async () => {
-    (mockFriendRepository.findByUserIdAndFriendId as ReturnType<typeof vi.fn>).mockResolvedValue(
-      null,
-    );
-    await expect(friendsService.block(1, 2)).rejects.toThrowError(NotFoundException);
-  });
-  it('친구 상태가 ACCEPTED가 아니면 예외를 던져야 함', async () => {
-    const pendingFriend = {
-      id: 1,
-      userId: 1,
-      friendId: 2,
+
+  it('친구 아님', async () => {
+    friendRepository.findByUserIdAndFriendId = vi.fn().mockResolvedValue({
       status: Status.PENDING,
-    };
-    (mockFriendRepository.findByUserIdAndFriendId as ReturnType<typeof vi.fn>).mockResolvedValue(
-      pendingFriend,
-    );
-    await expect(friendsService.block(1, 2)).rejects.toThrowError(ConflictException);
+    });
+
+    await expect(friendsService.block(1, 2)).rejects.toThrow(ConflictException);
+  });
+
+  it('차단 실패 - 친구 관계가 없음', async () => {
+    friendRepository.findByUserIdAndFriendId = vi.fn().mockResolvedValue(null);
+
+    await expect(friendsService.block(1, 2)).rejects.toThrow(NotFoundException);
+  });
+
+  it('차단 실패 - 친구가 아닌 상태(PENDING)', async () => {
+    friendRepository.findByUserIdAndFriendId = vi.fn().mockResolvedValue({
+      id: 1,
+      status: Status.PENDING,
+    });
+
+    await expect(friendsService.block(1, 2)).rejects.toThrow(ConflictException);
   });
 });
-describe('unblock', () => {
-  it('정상적인 친구 차단 해제를 처리해야 함', async () => {
-    const mockBlockedFriend = {
+
+describe('차단 해제', () => {
+  it('정상', async () => {
+    friendRepository.findByUserIdAndFriendId = vi.fn().mockResolvedValue({
       id: 1,
-      userId: 1,
-      friendId: 2,
       status: Status.BLOCKED,
-    };
-    (
-      mockFriendRepository.findByUserIdAndFriendId as ReturnType<typeof vi.fn>
-    ).mockResolvedValue(mockBlockedFriend);
-    (mockFriendRepository.update as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
-    const result = await friendsService.unblock(1, 2);
-    expect(result).toEqual({
-      status: STATUS.SUCCESS,
-      message: '친구를 차단 해제했습니다.',
     });
+    friendRepository.update = vi.fn().mockResolvedValue(undefined);
+
+    const result = await friendsService.unblock(1, 2);
+
+    expect(result.status).toBe(STATUS.SUCCESS);
+    expect(result.message).toBe('친구를 차단 해제했습니다.');
   });
-  it('친구 관계가 없으면 예외를 던져야 함', async () => {
-    (
-      mockFriendRepository.findByUserIdAndFriendId as ReturnType<typeof vi.fn>
-    ).mockResolvedValue(null);
-    await expect(friendsService.unblock(1, 2)).rejects.toThrowError(NotFoundException);
-  });
-  it('친구 상태가 BLOCKED가 아니면 예외를 던져야 함', async () => {
-    const acceptedFriend = {
-      id: 1,
-      userId: 1,
-      friendId: 2,
+
+  it('차단 상태가 아님', async () => {
+    friendRepository.findByUserIdAndFriendId = vi.fn().mockResolvedValue({
       status: Status.ACCEPTED,
-    };
-    (
-      mockFriendRepository.findByUserIdAndFriendId as ReturnType<typeof vi.fn>
-    ).mockResolvedValue(acceptedFriend);
-    await expect(friendsService.unblock(1, 2)).rejects.toThrowError(ConflictException);
+    });
+
+    await expect(friendsService.unblock(1, 2)).rejects.toThrow(ConflictException);
+  });
+
+  it('차단 해제 실패 - 친구 관계 없음', async () => {
+    friendRepository.findByUserIdAndFriendId = vi.fn().mockResolvedValue(null);
+
+    await expect(friendsService.unblock(1, 2)).rejects.toThrow(NotFoundException);
   });
 });
 
-describe('getFriends', () => {
-  it('주어진 status별로 친구를 조회하고 유저 정보와 함께 반환해야 한다', async () => {
-    // GIVEN
-    mockFriendRepository.findAllByUserIdAndStatus.mockImplementation((userId: number, status: Status) => {
-      if (status === Status.ACCEPTED) return Promise.resolve([{ friendId: 2 }]);
-      if (status === Status.BLOCKED) return Promise.resolve([{ friendId: 3 }]);
-      return Promise.resolve([]);
-    });
-
-    mockUserRepository.findById.mockImplementation((id: number) => {
-      if (id === 2) return Promise.resolve({ nickname: 'Alice', avatarUrl: 'https://img1.com' });
-      if (id === 3) return Promise.resolve({ nickname: 'Bob', avatarUrl: 'https://img2.com' });
-      return null;
-    });
-
-    // WHEN
-    const result = await friendsService.getFriends(1, [Status.ACCEPTED, Status.BLOCKED]);
-
-    // THEN
-    expect(result.status).toBe('SUCCESS');
-    expect(result.data.friends).toEqual([
+describe('친구 목록 조회', () => {
+  it('정상', async () => {
+    friendRepository.findAllByUserIdAndStatuses = vi.fn().mockResolvedValue([
       {
-        friend_id: 2,
-        nickname: 'Alice',
-        avatar_url: 'https://img1.com',
+        friendId: 2,
+        friend: {
+          nickname: 'friend2',
+          avatarUrl: 'url2',
+        },
         status: Status.ACCEPTED,
       },
-      {
-        friend_id: 3,
-        nickname: 'Bob',
-        avatar_url: 'https://img2.com',
-        status: Status.BLOCKED,
-      },
     ]);
-  });
 
-  it('친구 ID에 해당하는 유저 정보가 없으면 예외를 던져야 한다', async () => {
-    mockFriendRepository.findAllByUserIdAndStatus.mockImplementation((userId: number, status: Status) => {
-      if (status === Status.ACCEPTED) return Promise.resolve([{ friendId: 2 }]);
-      if (status === Status.BLOCKED) return Promise.resolve([{ friendId: 3 }]);
-      if (status === Status.PENDING) return Promise.resolve([{ friendId: 4 }]);
-      if (status === Status.REJECTED) return Promise.resolve([{ friendId: 5 }]);
-      return Promise.resolve([]);
-    });
-  
-    mockUserRepository.findById.mockImplementation((id: number) => {
-      if (id === 2) return Promise.resolve({ nickname: 'Alice', avatarUrl: 'https://img1.com' });
-      if (id === 3) return Promise.resolve({ nickname: 'Bob', avatarUrl: 'https://img2.com' });
-      if (id === 4) return Promise.resolve({ nickname: 'Anna', avatarUrl: 'https://img3.com' });
-      return null;
-    });
-  
-    // status를 undefined로 넘김
-    await expect(friendsService.getFriends(1, undefined)).rejects.toThrow(NotFoundException);
+    const result = await friendsService.getFriends(1, [Status.ACCEPTED]);
+
+    expect(result.status).toBe(STATUS.SUCCESS);
+    expect(result.data!.friends.length).toBe(1);
+    expect(result.data!.friends[0].nickname).toBe('friend2');
   });
 });
 
-describe('getRequests', () => {
-  it('대기중인 친구 요청 정상 조회해야 한다', async () => {
-    const userId = 1;
-    const mockRequests = [
-      { userId: 2, friendId: 1 },
-      { userId: 3, friendId: 1 },
-    ];
-    const mockProfiles = [
-      { userId: 2, nickname: 'user2', avatarUrl: 'url2' },
-      { userId: 3, nickname: 'user3', avatarUrl: 'url3' },
-    ];
-    
-    // mock repo return values
-    mockFriendRepository.findAllByFriendIdAndStatus.mockResolvedValue(mockRequests);
-    mockUserRepository.findById.mockImplementation((id: number) =>
-      mockProfiles.find(profile => profile.userId === id),
-    );
+describe('친구 요청 목록 조회', () => {
+  it('정상', async () => {
+    friendRepository.findAllByFriendIdAndStatus = vi.fn().mockResolvedValue([{ userId: 2 }]);
+    userRepository.findById = vi.fn().mockResolvedValue({
+      id: 2,
+      nickname: 'nick2',
+      avatarUrl: 'url2',
+    });
 
-    const result = await friendsService.getRequests(userId);
-    expect(result.status).toBe('SUCCESS');
-    expect(result.data.requests.length).toBe(2);
-    expect(result.data.requests[0].nickname).toBe('user2');
-  });
-  
-  it('친구요청이 없으면 빈 배열을 반환한다', async () => {
-    const userId = 1;
-    const mockRequests: any[] = [];
-    mockFriendRepository.findAllByFriendIdAndStatus.mockResolvedValue(mockRequests);
-    
-    const result = await friendsService.getRequests(userId);
-    expect(result.status).toBe('SUCCESS');
-    expect(result.data.requests.length).toBe(0);
+    const result = await friendsService.getRequests(1);
+
+    expect(result.status).toBe(STATUS.SUCCESS);
+    expect(result.data!.requests.length).toBe(1);
+    expect(result.data!.requests[0].nickname).toBe('nick2');
   });
 
-  it('요청을 보낸 친구들의 데이터를 불러오다 실패했을 때', async () => {
-    mockFriendRepository.findAllByFriendIdAndStatus.mockImplementation((userId: number, status: Status) => {
-      if (status === Status.PENDING) return Promise.resolve([{ userId: 2, friendId: 1 }]);
-      if (status === Status.PENDING) return Promise.resolve([{ userId: 3, friendId: 1 }]);
-      return Promise.resolve([]);
-    });
-  
-    mockUserRepository.findById.mockImplementation((id: number) => {
-      return null;
-    });
+  it('프로필 없음', async () => {
+    friendRepository.findAllByFriendIdAndStatus = vi.fn().mockResolvedValue([{ userId: 2 }]);
+    userRepository.findById = vi.fn().mockResolvedValue(null);
+
     await expect(friendsService.getRequests(1)).rejects.toThrow(NotFoundException);
   });
+
+  it('친구 요청 목록 다수 정상', async () => {
+    friendRepository.findAllByFriendIdAndStatus = vi
+      .fn()
+      .mockResolvedValue([{ userId: 2 }, { userId: 3 }]);
+
+    userRepository.findById = vi
+      .fn()
+      .mockResolvedValueOnce({ id: 2, nickname: 'user2', avatarUrl: 'url2' })
+      .mockResolvedValueOnce({ id: 3, nickname: 'user3', avatarUrl: 'url3' });
+
+    const result = await friendsService.getRequests(1);
+
+    expect(result.data!.requests).toHaveLength(2);
+    expect(result.data!.requests[1].nickname).toBe('user3');
+  });
 });
 
-describe('getStatus', () => {
-  it('친구 관계를 정상 조회해야 한다', async () => {
-    const userId = 1;
-    const parsed = { userId: 1, friendId: 2 };
-    const mockFriend = { status: Status.ACCEPTED };
-    mockFriendRepository.findByUserIdAndFriendId.mockResolvedValue(mockFriend);
+describe('친구 상태 확인', () => {
+  it('정상', async () => {
+    friendRepository.findByUserIdAndFriendId = vi.fn().mockResolvedValue({
+      status: Status.ACCEPTED,
+    });
 
-    const result = await friendsService.getStatus(userId, parsed);
-    expect(result.status).toBe('SUCCESS');
-    expect(result.data.status).toBe(Status.ACCEPTED);
+    const result = await friendsService.getStatus(1, { userId: 1, friendId: 2 });
+
+    expect(result.status).toBe(STATUS.SUCCESS);
+    expect(result.data!.status).toBe(Status.ACCEPTED);
   });
 
-  it('조회하려는 친구관계의 당사자가 아니면 UnAuthorizedException 예외를 던져야 한다', async () => {
-    const userId = 1;
-    const parsed = { user_id: 2, friend_id: 3 };
-    await expect(friendsService.getStatus(userId, parsed)).rejects.toThrow(UnAuthorizedException);
+  it('권한 없음', async () => {
+    await expect(friendsService.getStatus(1, { userId: 2, friendId: 1 })).rejects.toThrow(
+      UnAuthorizedException,
+    );
   });
 
-  it('친구 관계가 없으면 NotFoundException 예외를 던져야 한다', async () => {
-    const userId = 1;
-    const parsed = { userId: 1, friendId: 3 };
-    mockFriendRepository.findByUserIdAndFriendId.mockResolvedValue(null);
+  it('친구 관계 없음', async () => {
+    friendRepository.findByUserIdAndFriendId = vi.fn().mockResolvedValue(null);
 
-    await expect(friendsService.getStatus(userId, parsed)).rejects.toThrow(NotFoundException);
+    await expect(friendsService.getStatus(1, { userId: 1, friendId: 2 })).rejects.toThrow(
+      NotFoundException,
+    );
   });
 });
