@@ -35,8 +35,8 @@ export default class FriendsService {
     }
 
     await this.friendRepository.create({
-      userId,
-      friendId,
+      user: { connect: { id: userId } },
+      friend: { connect: { id: friendId } },
       status: Status.PENDING,
     });
 
@@ -131,75 +131,43 @@ export default class FriendsService {
 
   async getFriends(
     userId: number,
-    statuses: Status[] | undefined,
+    statuses: Status[],
   ): Promise<TypeOf<typeof friendListResponseSchema>> {
-    const targetStatuses =
-      statuses && statuses.length > 0
-        ? statuses
-        : [Status.ACCEPTED, Status.BLOCKED, Status.REJECTED, Status.PENDING];
+    const fetchResults = await this.friendRepository.findAllByUserIdAndStatuses(userId, statuses);
 
-    const allFriends = (
-      await Promise.all(
-        targetStatuses.map((status) =>
-          this.friendRepository.findAllByUserIdAndStatus(userId, status).then((friends) =>
-            friends.map((f) => ({
-              friendId: f.friendId,
-              status,
-            })),
-          ),
-        ),
-      )
-    ).flat();
-
-    const friendsData = await Promise.all(
-      allFriends.map(async ({ friendId, status }) => {
-        const profile = await this.userRepository.findById(friendId);
-        if (!profile) {
-          throw new NotFoundException(`유저 ID ${friendId}를 찾을 수 없습니다`);
-        }
-        return {
-          friend_id: friendId,
-          nickname: profile.nickname,
-          avatar_url: profile.avatarUrl,
-          status,
-        };
-      }),
-    );
+    const friends = fetchResults.map((result) => ({
+      friendId: result.friendId,
+      nickname: result.friend.nickname,
+      avatarUrl: result.friend.avatarUrl,
+      status: result.status,
+    }));
 
     return {
       status: STATUS.SUCCESS,
       message: '친구 목록이 성공적으로 조회되었습니다.',
       data: {
-        friends: friendsData,
+        friends,
       },
     };
   }
 
   async getRequests(userId: number): Promise<TypeOf<typeof getRequestsResponseSchema>> {
-    const allRequests = await this.friendRepository.findAllByFriendIdAndStatus(
-      userId,
-      Status.PENDING,
-    );
+    const allRequests = await this.friendRepository.findAllByFriendIdAndStatus({
+      friendId: userId,
+      status: Status.PENDING,
+    });
 
-    const requestsData = await Promise.all(
-      allRequests.map(async ({ userId }) => {
-        const profile = await this.userRepository.findById(userId);
-        if (!profile) {
-          throw new NotFoundException(`유저 ID ${userId}를 찾을 수 없습니다`);
-        }
-        return {
-          user_id: userId,
-          nickname: profile.nickname,
-          avatar_url: profile.avatarUrl,
-        };
-      }),
-    );
+    const requests = allRequests.map((request) => ({
+      friendId: request.userId,
+      nickname: request.user.nickname,
+      avatarUrl: request.user.avatarUrl,
+    }));
 
     return {
       status: STATUS.SUCCESS,
       message: '친구 요청 목록이 성공적으로 조회되었습니다.',
       data: {
-        requests: requestsData,
+        requests,
       },
     };
   }
@@ -245,8 +213,8 @@ export default class FriendsService {
 
     // 존재하지 않으면 생성 (수락 상태)
     await this.friendRepository.create({
-      userId: friendRequest.friendId,
-      friendId: friendRequest.userId,
+      user: { connect: { id: friendRequest.friendId } },
+      friend: { connect: { id: friendRequest.userId } },
       status: Status.ACCEPTED,
     });
   }

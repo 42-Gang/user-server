@@ -39,7 +39,7 @@ export default class FriendsController {
 
   getFriends = async (request: FastifyRequest, reply: FastifyReply) => {
     const parsed = getFriendsQuerySchema.parse(request.query);
-    const result = await this.friendsService.getFriends(request.userId, parsed.status ?? []);
+    const result = await this.friendsService.getFriends(request.userId, parsed.status);
     reply.status(200).send(result);
   };
 
