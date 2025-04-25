@@ -13,12 +13,13 @@ import {
   editNicknameInputSchema,
   editNicknameResponseSchema,
 } from './schemas/edit-nickname.schema.js';
-import { searchUserResponseSchema } from './schemas/search-user.schema.js';
 import {
   authenticateUserInputSchema,
   authenticateUserResponseSchema,
 } from './schemas/authenticate-user.schema.js';
 import { getProfileSchema, getProfileResponseSchema } from './schemas/get-profile.schema.js';
+import { Status } from '@prisma/client';
+import { searchUserQuerySchema } from './schemas/search-user.schema.js';
 
 export default class UsersService {
   constructor(
@@ -101,20 +102,38 @@ export default class UsersService {
     };
   }
 
-  async searchUser(nickname: string): Promise<TypeOf<typeof searchUserResponseSchema>> {
-    const users = await this.userRepository.findByNicknameStartsWith(nickname);
+  async searchUser({
+    userId,
+    query: { status, exceptMe },
+    nickname,
+  }: {
+    userId: number;
+    query: TypeOf<typeof searchUserQuerySchema>;
+    nickname: string;
+  }) {
+    // all: status가 없으면 전체조회, noneFlag: status 배열에 'NONE' 포함 여부
+    const all = status === undefined;
+    const noneFlag = status?.includes('NONE') ?? false;
+    // 실제 사용 가능한 status만 필터
+    const realStatuses = status?.filter((s) => s !== 'NONE') as Status[] | undefined;
+
+    const users = await this.userRepository.findByNicknameStartsWith({
+      nickname,
+      userId,
+      exceptMe,
+      all,
+      noneFlag,
+      statuses: realStatuses,
+    });
 
     return {
       status: STATUS.SUCCESS,
-      data: {
-        users,
-      },
+      data: { users },
     };
   }
 
   async checkDuplicatedEmail(email: string): Promise<boolean> {
     const foundEmail = await this.userRepository.findByEmail(email);
-    console.log('foundEmail', foundEmail);
     if (foundEmail) {
       throw new ConflictException('이미 존재하는 이메일입니다.');
     }

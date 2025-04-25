@@ -4,7 +4,7 @@ import UsersService from './users.service.js';
 import { createUserInputSchema } from './schemas/create-user.schema.js';
 import { getUserParamsSchema, getUserResponseSchema } from './schemas/get-user.schema.js';
 import { editNicknameInputSchema } from './schemas/edit-nickname.schema.js';
-import { searchUserParamsSchema } from './schemas/search-user.schema.js';
+import { searchUserParamsSchema, searchUserQuerySchema } from './schemas/search-user.schema.js';
 import { authenticateUserInputSchema } from './schemas/authenticate-user.schema.js';
 import { checkDuplicatedEmailParamsSchema } from './schemas/check-duplicated-email.schema.js';
 import { STATUS } from '../../common/constants/status.js';
@@ -38,8 +38,13 @@ export default class UsersController {
   };
 
   searchUser = async (request: FastifyRequest, reply: FastifyReply) => {
+    const query = searchUserQuerySchema.parse(request.query);
     const params = searchUserParamsSchema.parse(request.params);
-    const result = await this.usersService.searchUser(params.nickname);
+    const result = await this.usersService.searchUser({
+      userId: request.userId,
+      query,
+      nickname: params.nickname,
+    });
     reply.code(200).send(result);
   };
 

@@ -26,6 +26,9 @@ export default class UserStatusTopicHandler implements KafkaTopicHandler {
     const { userId, status } = message;
 
     await redis.set(`user:${userId}:status`, status);
-    this.statusNamespace.to(`user-status-${userId}`).emit('friend-status', { friendId: userId, status });
+    this.statusNamespace.to(`user-status-${userId}`).emit('friend-status', {
+      friendId: userId,
+      status,
+    });
   }
 }
