@@ -75,9 +75,10 @@ export default class FriendTopicHandler implements KafkaTopicHandler {
   }
 
   private async emitFriendStatus(namespace: Namespace, userAId: string, userBId: string) {
+    await new Promise((r) => setTimeout(r, 50));
+
     for (const id of [userAId, userBId]) {
       const status = (await redis.get(`user:${id}:status`)) || 'OFFLINE';
-      await namespace.to(`user-status-${id}`).fetchSockets();
       namespace.to(`user-status-${id}`).emit('friend-status', { friendId: id, status });
     }
   }
