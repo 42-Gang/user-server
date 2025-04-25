@@ -5,7 +5,7 @@ import { redis } from '../../../plugins/redis.js';
 import { TOPICS, USER_STATUS_EVENTS } from '../constants.js';
 import { KafkaTopicHandler } from './kafka.topic.handler.js';
 
-export default class UserStatusTopicConsumer implements KafkaTopicHandler {
+export default class UserStatusTopicHandler implements KafkaTopicHandler {
   public readonly topic = TOPICS.USER_STATUS;
   public readonly fromBeginning = true;
 

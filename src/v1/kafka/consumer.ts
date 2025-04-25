@@ -1,14 +1,14 @@
 import { kafka } from '../../plugins/kafka.js';
 import { KafkaTopicHandler } from './consumers/kafka.topic.handler.js';
 import FriendTopicHandler from './consumers/friend.topic.handler.js';
-import UserStatusTopicConsumer from './consumers/user-status.topic.handler.js';
+import UserStatusTopicHandler from './consumers/user-status.topic.handler.js';
 
 export async function startConsumer(
   friendTopicHandler: FriendTopicHandler,
-  userStatusTopicConsumer: UserStatusTopicConsumer,
+  userStatusTopicHandler: UserStatusTopicHandler,
 ) {
   const consumer = kafka.consumer({ groupId: 'STATUS', sessionTimeout: 10000 });
-  const handlers: KafkaTopicHandler[] = [friendTopicHandler, userStatusTopicConsumer];
+  const handlers: KafkaTopicHandler[] = [friendTopicHandler, userStatusTopicHandler];
 
   await consumer.connect();
 
