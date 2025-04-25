@@ -19,6 +19,7 @@ import {
 } from './schemas/authenticate-user.schema.js';
 import { getProfileSchema, getProfileResponseSchema } from './schemas/get-profile.schema.js';
 import { Status } from '@prisma/client';
+import { searchUserQuerySchema } from './schemas/search-user.schema.js';
 
 export default class UsersService {
   constructor(
@@ -107,7 +108,7 @@ export default class UsersService {
     nickname,
   }: {
     userId: number;
-    query: { status?: string[]; exceptMe?: number };
+    query: TypeOf<typeof searchUserQuerySchema>;
     nickname: string;
   }) {
     // all: status가 없으면 전체조회, noneFlag: status 배열에 'NONE' 포함 여부

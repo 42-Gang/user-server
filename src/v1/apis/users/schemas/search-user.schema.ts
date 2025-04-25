@@ -35,23 +35,12 @@ export const searchUserQuerySchema = z.object({
       })
       .optional(),
   ),
-  exceptMe: z.preprocess(
-    (num) => (num === undefined ? undefined : Number(num)),
-    z.preprocess(
-      (num) => (num === undefined ? undefined : Number(num)),
-      z
-        .number()
-        .optional()
-        .superRefine((val, ctx) => {
-          if (val !== undefined && val !== 0 && val !== 1) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              message: 'exceptMe는 0, 1 또는 undefined만 가능합니다.',
-            });
-          }
-        }),
-    ),
-  ),
+  exceptMe: z.preprocess((val) => {
+    if (val === undefined) return undefined;
+    if (val === 'true' || val === 1) return true;
+    if (val === 'false' || val === 0) return false;
+    return val;
+  }, z.boolean().optional()),
 });
 
 export const searchUserResponseSchema = createResponseSchema(
