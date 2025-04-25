@@ -1,7 +1,7 @@
 import { kafka } from '../../plugins/kafka.js';
 import { KafkaTopicHandler } from './consumers/kafka.topic.handler.js';
-import FriendTopicHandler from './consumers/friend.consumer.js';
-import UserStatusTopicConsumer from './consumers/user-status.consumer.js';
+import FriendTopicHandler from './consumers/friend.topic.handler.js';
+import UserStatusTopicConsumer from './consumers/user-status.topic.handler.js';
 
 export async function startConsumer(
   friendTopicHandler: FriendTopicHandler,

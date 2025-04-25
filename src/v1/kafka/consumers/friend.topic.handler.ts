@@ -5,7 +5,7 @@ import { friendAddMessage, friendBlockMessage } from '../schemas/messages.schema
 import { KafkaTopicHandler } from './kafka.topic.handler.js';
 import { FRIEND_EVENTS, TOPICS } from '../constants.js';
 import { userStatus } from '../../sockets/status/status.schema.js';
-import UserStatusConsumer from './user-status.consumer.js';
+import UserStatusConsumer from './user-status.topic.handler.js';
 
 export default class FriendTopicHandler implements KafkaTopicHandler {
   public readonly topic = TOPICS.FRIEND;
