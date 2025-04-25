@@ -2,9 +2,25 @@ import { Namespace } from 'socket.io';
 import { TypeOf } from 'zod';
 import { userStatusMessage } from '../schemas/messages.schema.js';
 import { redis } from '../../../plugins/redis.js';
+import { TOPICS, USER_STATUS_EVENTS } from '../constants.js';
+import { KafkaTopicHandler } from './kafka.topic.handler.js';
 
-export default class UserStatusConsumer {
+export default class UserStatusTopicConsumer implements KafkaTopicHandler {
+  public readonly topic = TOPICS.USER_STATUS;
+  public readonly fromBeginning = true;
+
   constructor(private readonly namespace: Namespace) {}
+
+  async handle(messageValue: string): Promise<void> {
+    const parsedMessage = JSON.parse(messageValue);
+    const data = userStatusMessage.parse(parsedMessage);
+
+    if (parsedMessage.eventType == USER_STATUS_EVENTS.CHANGED) {
+      const data = userStatusMessage.parse(parsedMessage);
+      await this.handleUserStatusMessage(data);
+    }
+    await this.handleUserStatusMessage(data);
+  }
 
   async handleUserStatusMessage(message: TypeOf<typeof userStatusMessage>) {
     const { userId, status } = message;

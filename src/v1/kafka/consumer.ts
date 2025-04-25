@@ -1,72 +1,16 @@
-import { Namespace } from 'socket.io';
-import { TOPICS, GROUP_IDS, USER_STATUS_EVENTS, FRIEND_EVENTS } from './constants.js';
 import { kafka } from '../../plugins/kafka.js';
-import FriendConsumer from './consumers/friend.consumer.js';
-import UserStatusConsumer from './consumers/user-status.consumer.js';
-import { userStatus } from '../sockets/status/status.schema.js';
-import {
-  friendAddMessage,
-  friendBlockMessage,
-  userStatusMessage,
-} from './schemas/messages.schema.js';
+import { KafkaTopicHandler } from './consumers/kafka.topic.handler.js';
+import FriendTopicHandler from './consumers/friend.consumer.js';
 
-const consumer = kafka.consumer({ groupId: GROUP_IDS.STATUS, sessionTimeout: 10000 });
+export async function startConsumer(friendTopicHandler: FriendTopicHandler) {
+  const consumer = kafka.consumer({ groupId: 'STATUS', sessionTimeout: 10000 });
+  const handlers: KafkaTopicHandler[] = [friendTopicHandler];
 
-async function handleFriendTopic(
-  messageValue: string,
-  friendConsumer: FriendConsumer,
-  userStatusConsumer: UserStatusConsumer,
-) {
-  const parsedMessage = JSON.parse(messageValue);
-
-  if (parsedMessage.eventType == FRIEND_EVENTS.ADDED) {
-    const data = friendAddMessage.parse(parsedMessage);
-    await userStatusConsumer.handleUserStatusMessage({
-      userId: data.userAId,
-      status: userStatus.ONLINE,
-    });
-    await userStatusConsumer.handleUserStatusMessage({
-      userId: data.userBId,
-      status: userStatus.ONLINE,
-    });
-
-    await friendConsumer.handleFriendAddMessage(data);
-  }
-  if (parsedMessage.eventType == FRIEND_EVENTS.BLOCK) {
-    const data = friendBlockMessage.parse(parsedMessage);
-    await userStatusConsumer.handleUserStatusMessage({
-      userId: data.fromUserId,
-      status: userStatus.ONLINE,
-    });
-
-    await friendConsumer.handleFriendBlockMessage(parsedMessage);
-  }
-  if (parsedMessage.eventType == FRIEND_EVENTS.UNBLOCK) {
-    const data = friendBlockMessage.parse(parsedMessage);
-    await userStatusConsumer.handleUserStatusMessage({
-      userId: data.fromUserId,
-      status: userStatus.ONLINE,
-    });
-
-    await friendConsumer.handleFriendUnblockMessage(parsedMessage);
-  }
-}
-
-async function handleUserStatusTopic(messageValue: string, userStatusConsumer: UserStatusConsumer) {
-  const parsedMessage = JSON.parse(messageValue);
-  if (parsedMessage.eventType == USER_STATUS_EVENTS.CHANGED) {
-    const data = userStatusMessage.parse(parsedMessage);
-    await userStatusConsumer.handleUserStatusMessage(data);
-  }
-  return;
-}
-
-export async function startConsumer(namespace: Namespace) {
   await consumer.connect();
-  await consumer.subscribe({ topic: TOPICS.USER_STATUS, fromBeginning: true });
-  await consumer.subscribe({ topic: TOPICS.FRIEND, fromBeginning: true });
-  const friendConsumer = new FriendConsumer(namespace);
-  const userStatusConsumer = new UserStatusConsumer(namespace);
+
+  for (const handler of handlers) {
+    await consumer.subscribe({ topic: handler.topic, fromBeginning: handler.fromBeginning });
+  }
 
   await consumer.run({
     eachMessage: async ({ topic, message }) => {
@@ -74,12 +18,12 @@ export async function startConsumer(namespace: Namespace) {
         return console.warn(`Null message received on topic ${topic}`);
       }
 
-      if (topic === TOPICS.USER_STATUS) {
-        await handleUserStatusTopic(message.value.toString(), userStatusConsumer);
+      const handler = handlers.find((h) => h.topic === topic);
+      if (!handler) {
+        return console.warn(`No handler found for topic ${topic}`);
       }
-      if (topic === TOPICS.FRIEND) {
-        await handleFriendTopic(message.value.toString(), friendConsumer, userStatusConsumer);
-      }
+
+      await handler.handle(message.value.toString());
     },
   });
 }
