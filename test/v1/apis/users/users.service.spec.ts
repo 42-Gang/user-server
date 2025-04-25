@@ -157,7 +157,32 @@ describe('유저 검색', () => {
     ];
     userRepository.findByNicknameStartsWith = vi.fn().mockResolvedValue(mockUsers);
 
-    const result = await usersService.searchUser('test');
+    const result = await usersService.searchUser({
+      userId: 3,
+      nickname: 'test',
+      query: {},
+    });
+
+    expect(result.status).toBe(STATUS.SUCCESS);
+    expect(result.data).toBeDefined();
+    expect(result.data!.users.length).toBe(2);
+    expect(result.data!.users[0].nickname).toMatch(/^test/);
+  });
+
+  it('query에 None이 들어갈 경우', async () => {
+    const mockUsers = [
+      { id: 1, nickname: 'test1' },
+      { id: 2, nickname: 'test2' },
+    ];
+    userRepository.findByNicknameStartsWith = vi.fn().mockResolvedValue(mockUsers);
+
+    const result = await usersService.searchUser({
+      userId: 3,
+      nickname: 'test',
+      query: {
+        status: ['NONE'],
+      },
+    });
 
     expect(result.status).toBe(STATUS.SUCCESS);
     expect(result.data).toBeDefined();
