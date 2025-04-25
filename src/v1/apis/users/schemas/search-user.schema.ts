@@ -10,6 +10,9 @@ export const searchUserParamsSchema = userSchema.pick({
 export const searchUserQuerySchema = z.object({
   status: z.preprocess(
     (status) => {
+      if (status === undefined) {
+        return [];
+      }
       if (Array.isArray(status)) {
         return status;
       }
