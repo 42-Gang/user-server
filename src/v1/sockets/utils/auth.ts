@@ -9,6 +9,7 @@ export async function verifyAccessToken(token: string): Promise<{
     method: 'POST',
     url: `http://${process.env.AUTH_SERVER}/api/v1/auth/validate-token`,
     headers: {
+      'x-internal': 'true',
       authorization: `Bearer ${token}`,
     },
   });
