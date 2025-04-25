@@ -1,8 +1,16 @@
 import { Server } from 'socket.io';
-import statusNamespace from './status/status.namespace.js';
+import startStatusNamespace from './status/startStatusNamespace.js';
 import { socketMiddleware } from './utils/middleware.js';
+import { asValue, AwilixContainer } from 'awilix';
 
-export const registerSocketGateway = (io: Server) => {
+export const registerSocketGateway = (diContainer: AwilixContainer, io: Server) => {
   io.use(socketMiddleware);
-  statusNamespace(io.of('/status'));
+
+  const statusNamespace = io.of('/status');
+
+  diContainer.register({
+    statusNamespace: asValue(statusNamespace),
+  });
+
+  startStatusNamespace(statusNamespace);
 };

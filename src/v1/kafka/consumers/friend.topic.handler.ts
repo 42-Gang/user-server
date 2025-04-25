@@ -5,15 +5,15 @@ import { friendAddMessage, friendBlockMessage } from '../schemas/messages.schema
 import { KafkaTopicHandler } from './kafka.topic.handler.js';
 import { FRIEND_EVENTS, TOPICS } from '../constants.js';
 import { userStatus } from '../../sockets/status/status.schema.js';
-import UserStatusConsumer from './user-status.topic.handler.js';
+import UserStatusTopicHandler from './user-status.topic.handler.js';
 
 export default class FriendTopicHandler implements KafkaTopicHandler {
   public readonly topic = TOPICS.FRIEND;
   public readonly fromBeginning = true;
 
   constructor(
-    private readonly namespace: Namespace,
-    private readonly userStatusConsumer: UserStatusConsumer,
+    private readonly statusNamespace: Namespace,
+    private readonly userStatusTopicHandler: UserStatusTopicHandler,
   ) {}
 
   async handle(messageValue: string): Promise<void> {
@@ -21,11 +21,11 @@ export default class FriendTopicHandler implements KafkaTopicHandler {
 
     if (parsedMessage.eventType == FRIEND_EVENTS.ADDED) {
       const data = friendAddMessage.parse(parsedMessage);
-      await this.userStatusConsumer.handleUserStatusMessage({
+      await this.userStatusTopicHandler.handleUserStatusMessage({
         userId: data.userAId,
         status: userStatus.ONLINE,
       });
-      await this.userStatusConsumer.handleUserStatusMessage({
+      await this.userStatusTopicHandler.handleUserStatusMessage({
         userId: data.userBId,
         status: userStatus.ONLINE,
       });
@@ -34,7 +34,7 @@ export default class FriendTopicHandler implements KafkaTopicHandler {
     }
     if (parsedMessage.eventType == FRIEND_EVENTS.BLOCK) {
       const data = friendBlockMessage.parse(parsedMessage);
-      await this.userStatusConsumer.handleUserStatusMessage({
+      await this.userStatusTopicHandler.handleUserStatusMessage({
         userId: data.fromUserId,
         status: userStatus.ONLINE,
       });
@@ -43,7 +43,7 @@ export default class FriendTopicHandler implements KafkaTopicHandler {
     }
     if (parsedMessage.eventType == FRIEND_EVENTS.UNBLOCK) {
       const data = friendBlockMessage.parse(parsedMessage);
-      await this.userStatusConsumer.handleUserStatusMessage({
+      await this.userStatusTopicHandler.handleUserStatusMessage({
         userId: data.fromUserId,
         status: userStatus.ONLINE,
       });
@@ -56,21 +56,21 @@ export default class FriendTopicHandler implements KafkaTopicHandler {
     const { userAId, userBId } = message;
 
     console.log(message);
-    await this.joinFriendStatusRooms(this.namespace, userAId.toString(), userBId.toString());
-    await this.emitFriendStatus(this.namespace, userAId.toString(), userBId.toString());
+    await this.joinFriendStatusRooms(this.statusNamespace, userAId.toString(), userBId.toString());
+    await this.emitFriendStatus(this.statusNamespace, userAId.toString(), userBId.toString());
   }
 
   async handleFriendBlockMessage(message: TypeOf<typeof friendBlockMessage>) {
     const { fromUserId, toUserId } = message;
 
-    const toUserSocket = this.namespace.in(`user:${toUserId}`);
+    const toUserSocket = this.statusNamespace.in(`user:${toUserId}`);
     toUserSocket?.socketsLeave(`user-status-${fromUserId}`);
   }
 
   async handleFriendUnblockMessage(message: TypeOf<typeof friendBlockMessage>) {
     const { fromUserId, toUserId } = message;
 
-    const toUserSocket = this.namespace.in(`user:${toUserId}`);
+    const toUserSocket = this.statusNamespace.in(`user:${toUserId}`);
     toUserSocket?.socketsJoin(`user-status-${fromUserId}`);
   }
 

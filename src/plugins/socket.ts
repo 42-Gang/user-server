@@ -18,6 +18,6 @@ export function createSocketServer(fastify: FastifyInstance) {
 
   socket.adapter(createAdapter(pubClient, subClient));
 
-  registerSocketGateway(socket);
+  registerSocketGateway(fastify.diContainer, socket);
   return socket;
 }

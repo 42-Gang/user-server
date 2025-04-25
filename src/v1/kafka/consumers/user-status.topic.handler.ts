@@ -9,7 +9,7 @@ export default class UserStatusTopicHandler implements KafkaTopicHandler {
   public readonly topic = TOPICS.USER_STATUS;
   public readonly fromBeginning = true;
 
-  constructor(private readonly namespace: Namespace) {}
+  constructor(private readonly statusNamespace: Namespace) {}
 
   async handle(messageValue: string): Promise<void> {
     const parsedMessage = JSON.parse(messageValue);
@@ -26,6 +26,6 @@ export default class UserStatusTopicHandler implements KafkaTopicHandler {
     const { userId, status } = message;
 
     await redis.set(`user:${userId}:status`, status);
-    this.namespace.to(`user-status-${userId}`).emit('friend-status', { friendId: userId, status });
+    this.statusNamespace.to(`user-status-${userId}`).emit('friend-status', { friendId: userId, status });
   }
 }
