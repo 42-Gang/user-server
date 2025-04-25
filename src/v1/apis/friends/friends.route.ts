@@ -6,7 +6,7 @@ import {
   friendResponseSchema,
   updateFriendParamsSchema,
 } from './friends.schema.js';
-import { getFriendsQuerySchema } from './schemas/get-friends.schema.js';
+import { friendListResponseSchema, getFriendsQuerySchema } from './schemas/get-friends.schema.js';
 import { getStatusQuerySchema } from './schemas/get-status.schema.js';
 
 export default async function friendsRoutes(fastify: FastifyInstance) {
@@ -103,7 +103,7 @@ export default async function friendsRoutes(fastify: FastifyInstance) {
           description: '친구 리스트',
           querystring: getFriendsQuerySchema,
           response: {
-            200: friendResponseSchema,
+            200: friendListResponseSchema,
           },
         },
         auth: true,
