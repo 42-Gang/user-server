@@ -7,7 +7,7 @@ export async function verifyAccessToken(token: string): Promise<{
 }> {
   const response = await gotClient.request({
     method: 'POST',
-    url: `http://${process.env.AUTH_SERVER}/api/v1/auth/validate-token`,
+    url: `http://${process.env.AUTH_SERVER_URL}/api/v1/auth/validate-token`,
     headers: {
       'x-internal': 'true',
       authorization: `Bearer ${token}`,
