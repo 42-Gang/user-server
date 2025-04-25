@@ -13,7 +13,7 @@ import {
   editNicknameInputSchema,
   editNicknameResponseSchema,
 } from './schemas/edit-nickname.schema.js';
-import { searchUserResponseSchema } from './schemas/search-user.schema.js';
+import { searchUserQuerySchema, searchUserResponseSchema } from './schemas/search-user.schema.js';
 import {
   authenticateUserInputSchema,
   authenticateUserResponseSchema,
@@ -101,7 +101,10 @@ export default class UsersService {
     };
   }
 
-  async searchUser(nickname: string): Promise<TypeOf<typeof searchUserResponseSchema>> {
+  async searchUser(
+    { status, exceptMe }: TypeOf<typeof searchUserQuerySchema>,
+    nickname: string,
+  ): Promise<TypeOf<typeof searchUserResponseSchema>> {
     const users = await this.userRepository.findByNicknameStartsWith(nickname);
 
     return {
