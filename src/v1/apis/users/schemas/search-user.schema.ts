@@ -18,7 +18,12 @@ export const searchUserQuerySchema = z.object({
       }
       return [status];
     },
-    z.array(z.nativeEnum(Status)),
+    z.array(
+      z.nativeEnum({
+        ...Status,
+        NONE: 'NONE',
+      }),
+    ),
   ),
   exceptMe: z.boolean().optional(),
 });
