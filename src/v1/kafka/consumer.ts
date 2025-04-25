@@ -4,7 +4,7 @@ import { kafka } from '../../plugins/kafka.js';
 import FriendConsumer from './consumers/friend.consumer.js';
 import UserStatusConsumer from './consumers/user-status.consumer.js';
 import { userStatus } from '../sockets/status/status.schema.js';
-import { friendAddMessage, friendBlockMessage, userStatusMessage } from './messages.schema.js';
+import { friendAddMessage, friendBlockMessage, userStatusMessage } from './schemas/messages.schema.js';
 
 const consumer = kafka.consumer({ groupId: GROUP_IDS.STATUS, sessionTimeout: 10000 });
 

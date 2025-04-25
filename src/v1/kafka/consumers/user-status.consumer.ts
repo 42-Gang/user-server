@@ -1,6 +1,6 @@
 import { Namespace } from 'socket.io';
 import { TypeOf } from 'zod';
-import { userStatusMessage } from '../messages.schema.js';
+import { userStatusMessage } from '../schemas/messages.schema.js';
 import { redis } from '../../../plugins/redis.js';
 
 export default class UserStatusConsumer {

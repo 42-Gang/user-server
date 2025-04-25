@@ -1,7 +1,7 @@
 import { Namespace } from 'socket.io';
 import { redis } from '../../../plugins/redis.js';
 import { TypeOf } from 'zod';
-import { friendAddMessage, friendBlockMessage } from '../messages.schema.js';
+import { friendAddMessage, friendBlockMessage } from '../schemas/messages.schema.js';
 
 export default class FriendConsumer {
   constructor(private readonly namespace: Namespace) {}
