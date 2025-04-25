@@ -5,7 +5,7 @@ export default interface UserRepositoryInterface
   extends BaseRepositoryInterface<User, Prisma.UserCreateInput, Prisma.UserUpdateInput> {
   findByEmail(email: string): Promise<User | null>;
 
-  findByNicknameStartsWith(nickname: string): Promise<User[]>;
+  findByNicknameStartsWith(nickname: string, userId: number): Promise<User[]>;
 
   findByNickname(nickname: string): Promise<User | null>;
 }

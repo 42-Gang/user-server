@@ -101,8 +101,19 @@ export default class UsersService {
     };
   }
 
-  async searchUser(nickname: string): Promise<TypeOf<typeof searchUserResponseSchema>> {
-    const users = await this.userRepository.findByNicknameStartsWith(nickname);
+  async searchUser(userId:number, nickname: string): Promise<TypeOf<typeof searchUserResponseSchema>> {
+    const users = await this.userRepository.findByNicknameStartsWith(nickname, userId);
+
+    const result = users.map((user) => ({
+      const relation = user.friendOf[0];
+
+      return {
+        friendId: user.id,
+        nickname: user.nickname,
+        avatarUrl: user.avatarUrl,
+        status: relation?.status ?? null,
+      };
+    }));
 
     return {
       status: STATUS.SUCCESS,

@@ -28,7 +28,7 @@ export default class UserRepositoryPrisma implements UserRepositoryInterface {
     return this.prisma.user.update({ where: { id }, data });
   }
 
-  findByNicknameStartsWith(nickname: string): Promise<User[]> {
+  findByNicknameStartsWith(nickname: string, userId: number): Promise<User[]> {
     return this.prisma.user.findMany({
       where: {
         nickname: {
@@ -36,6 +36,13 @@ export default class UserRepositoryPrisma implements UserRepositoryInterface {
         },
       },
       take: 10,
+      include: {
+        friendOf: {
+          where: {
+            userId: userId,
+          },
+        },
+      },
     });
   }
 
