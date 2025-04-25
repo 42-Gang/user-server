@@ -1,5 +1,5 @@
 import { Namespace } from 'socket.io';
-import { redis } from '../../../../plugins/redis.js';
+import { redis } from '../../plugins/redis.js';
 import { TypeOf } from 'zod';
 import { friendAddMessage, friendBlockMessage } from './messages.schema.js';
 

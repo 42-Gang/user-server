@@ -1,9 +1,9 @@
 import { Namespace } from 'socket.io';
 import { TOPICS, GROUP_IDS, USER_STATUS_EVENTS, FRIEND_EVENTS } from './constants.js';
-import { kafka } from '../../../../plugins/kafka.js';
+import { kafka } from '../../plugins/kafka.js';
 import FriendConsumer from './friend.consumer.js';
 import UserStatusConsumer from './user-status.consumer.js';
-import { userStatus } from '../status.schema.js';
+import { userStatus } from '../sockets/status/status.schema.js';
 import { friendAddMessage, friendBlockMessage, userStatusMessage } from './messages.schema.js';
 
 const consumer = kafka.consumer({ groupId: GROUP_IDS.STATUS, sessionTimeout: 10000 });
