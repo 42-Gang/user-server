@@ -1,7 +1,7 @@
 import { createServer, startServer } from './server-utils.js';
 import { configureServer, registerPlugins, setupGracefulShutdown } from './server-config.js';
 import { createSocketServer } from './plugins/socket.js';
-import { asClass, asFunction, asValue, Lifetime } from 'awilix';
+import { asClass, asFunction, Lifetime } from 'awilix';
 import { startConsumer } from './v1/kafka/consumer.js';
 
 async function init() {
