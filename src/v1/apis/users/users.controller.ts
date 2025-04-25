@@ -40,7 +40,11 @@ export default class UsersController {
   searchUser = async (request: FastifyRequest, reply: FastifyReply) => {
     const query = searchUserQuerySchema.parse(request.query);
     const params = searchUserParamsSchema.parse(request.params);
-    const result = await this.usersService.searchUser(query, params.nickname);
+    const result = await this.usersService.searchUser({
+      userId: request.userId,
+      query,
+      nickname: params.nickname,
+    });
     reply.code(200).send(result);
   };
 
