@@ -11,7 +11,7 @@ export const getRequestsResponseSchema = createResponseSchema(
           avatarUrl: true,
         })
         .extend({
-          friendId: z.number(),
+          userId: z.number(),
         }),
     ),
   }),
