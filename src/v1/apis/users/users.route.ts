@@ -8,7 +8,11 @@ import {
   editNicknameInputSchema,
   editNicknameResponseSchema,
 } from './schemas/edit-nickname.schema.js';
-import { searchUserParamsSchema, searchUserResponseSchema } from './schemas/search-user.schema.js';
+import {
+  searchUserParamsSchema,
+  searchUserQuerySchema,
+  searchUserResponseSchema,
+} from './schemas/search-user.schema.js';
 import {
   authenticateUserInputSchema,
   authenticateUserResponseSchema,
@@ -95,6 +99,7 @@ export default async function usersRoutes(fastify: FastifyInstance) {
           tags: ['users'],
           description: '유저 검색',
           params: searchUserParamsSchema,
+          querystring: searchUserQuerySchema,
           response: {
             200: searchUserResponseSchema,
           },
