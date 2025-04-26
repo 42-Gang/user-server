@@ -51,6 +51,31 @@ export async function sendFriendAcceptEvent({
   });
 }
 
+export async function sendFriendRejectEvent({
+  fromUserId,
+  toUserId,
+  timestamp = new Date().toISOString(),
+}: {
+  fromUserId: number;
+  toUserId: number;
+  timestamp?: string;
+}) {
+  await producer.send({
+    topic: TOPICS.FRIEND,
+    messages: [
+      {
+        key: String(Math.min(fromUserId, toUserId)) + '-' + String(Math.max(fromUserId, toUserId)),
+        value: JSON.stringify({
+          eventType: FRIEND_EVENTS.REJECTED,
+          fromUserId,
+          toUserId,
+          timestamp,
+        }),
+      },
+    ],
+  });
+}
+
 export async function sendFriendAddedEvent({
   userAId,
   userBId,
