@@ -13,7 +13,7 @@ export default class StatusService {
     // const cachedFriends = await this.friendCacheRepository.getFriends(userId);
     // if (cachedFriends?.length) return cachedFriends;
 
-    const friends = await this.friendRepository.findAllByUserIdAndStatus(userId, 'ACCEPTED');
+    const friends = await this.friendRepository.findAllByUserIdAndNotBlocked(userId);
 
     friendsSchema.parse(friends);
     // await this.friendCacheRepository.addFriends(userId, friends);

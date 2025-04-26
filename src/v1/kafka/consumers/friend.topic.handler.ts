@@ -34,21 +34,21 @@ export default class FriendTopicHandler implements KafkaTopicHandler {
     }
     if (parsedMessage.eventType == FRIEND_EVENTS.BLOCK) {
       const data = friendBlockMessage.parse(parsedMessage);
+
+      await this.handleFriendBlockMessage(parsedMessage);
       await this.userStatusTopicHandler.handleUserStatusMessage({
         userId: data.fromUserId,
         status: userStatus.ONLINE,
       });
-
-      await this.handleFriendBlockMessage(parsedMessage);
     }
     if (parsedMessage.eventType == FRIEND_EVENTS.UNBLOCK) {
       const data = friendBlockMessage.parse(parsedMessage);
+
+      await this.handleFriendUnblockMessage(parsedMessage);
       await this.userStatusTopicHandler.handleUserStatusMessage({
         userId: data.fromUserId,
         status: userStatus.ONLINE,
       });
-
-      await this.handleFriendUnblockMessage(parsedMessage);
     }
   }
 
