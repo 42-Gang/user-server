@@ -1,6 +1,6 @@
 import { Namespace } from 'socket.io';
 import { socketMiddleware } from '../utils/middleware.js';
-import { handleConnection } from './connection.handler.js';
+import { statusHandleConnection } from './connection.handler.js';
 
 export default async function startStatusNamespace(namespace: Namespace) {
   namespace.use(socketMiddleware);
@@ -8,5 +8,5 @@ export default async function startStatusNamespace(namespace: Namespace) {
   // const friendCacheRepository = namespace.server.diContainer.resolve('friendCacheRepository');
   const statusService = namespace.server.diContainer.resolve('statusService');
 
-  namespace.on('connection', (socket) => handleConnection(socket, namespace, statusService));
+  namespace.on('connection', (socket) => statusHandleConnection(socket, namespace, statusService));
 }
