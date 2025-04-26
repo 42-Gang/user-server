@@ -1,5 +1,5 @@
 import { Server } from 'socket.io';
-import startStatusNamespace from './status/startStatusNamespace.js';
+import startStatusNamespace from './status/start-status-namespace.js';
 import { socketMiddleware } from './utils/middleware.js';
 import { asValue, AwilixContainer } from 'awilix';
 
