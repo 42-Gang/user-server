@@ -4,7 +4,7 @@ import StatusService from './status.service.js';
 import { userStatus } from './status.schema.js';
 import { TypeOf } from 'zod';
 import { friendsSchema } from './friends.schema.js';
-import { sendStatus } from '../../kafka/producers/producer.js';
+import { sendStatus } from '../../kafka/producers/user-status.producer.js';
 
 export async function handleConnection(
   socket: Socket,
