@@ -14,6 +14,12 @@ import { getRequestsResponseSchema } from './schemas/get-requests.schema.js';
 import { getStatusQuerySchema } from './schemas/get-status.schema.js';
 import { Status, Friend } from '@prisma/client';
 import UserRepositoryInterface from '../../storage/database/interfaces/user.repository.interface.js';
+import {
+  sendBlockEvent,
+  sendFriendAcceptEvent,
+  sendFriendAddedEvent, sendFriendRejectEvent,
+  sendFriendRequestEvent, sendUnblockEvent,
+} from '../../kafka/producers/friend.producer.js';
 
 export default class FriendsService {
   constructor(
@@ -39,6 +45,9 @@ export default class FriendsService {
       friend: { connect: { id: friendId } },
       status: Status.PENDING,
     });
+
+    // 친구 요청 이벤트 전송
+    await sendFriendRequestEvent({ fromUserId: userId, toUserId: friendId });
 
     return {
       status: STATUS.SUCCESS,
@@ -67,6 +76,11 @@ export default class FriendsService {
     // 나와 상대방의 친구 관계를 동기화
     await this.syncReverseFriendRelation(friendRequest);
 
+    // 친구 수락 이벤트 전송
+    await sendFriendAcceptEvent({ fromUserId: senderId, toUserId: userId });
+    // 친구 추가 완료 이벤트 전송(단일 방 생성 기준)
+    await sendFriendAddedEvent({ userAId: userId, userBId: senderId });
+
     return {
       status: STATUS.SUCCESS,
       message: '친구 요청을 수락했습니다.',
@@ -89,6 +103,9 @@ export default class FriendsService {
       status: Status.REJECTED,
     });
 
+    // rejet 이벤트 전송
+    await sendFriendRejectEvent({ fromUserId: sender, toUserId: userId });
+
     return {
       status: STATUS.SUCCESS,
       message: '친구 요청을 거절했습니다.',
@@ -106,6 +123,9 @@ export default class FriendsService {
 
     await this.friendRepository.update(friend.id, { status: Status.BLOCKED });
 
+    // 친구 차단 이벤트 전송
+    await sendBlockEvent({ fromUserId: userId, toUserId: friendId });
+
     return {
       status: STATUS.SUCCESS,
       message: '친구를 차단했습니다.',
@@ -122,6 +142,9 @@ export default class FriendsService {
     }
 
     await this.friendRepository.update(friend.id, { status: Status.ACCEPTED });
+
+    // 친구 차단 해제 이벤트 전송
+    await sendUnblockEvent({ fromUserId: userId, toUserId: friendId });
 
     return {
       status: STATUS.SUCCESS,
