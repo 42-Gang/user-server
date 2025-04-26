@@ -27,7 +27,16 @@ export async function startConsumer(
         return console.warn(`No handler found for topic ${topic}`);
       }
 
-      await handler.handle(message.value.toString());
+      try {
+        await handler.handle(message.value.toString());
+      } catch (error) {
+        console.error(
+          `❌ Error handling message from topic ${topic}:`,
+          error,
+          'Raw message:',
+          message.value.toString(),
+        );
+      }
     },
   });
 }
