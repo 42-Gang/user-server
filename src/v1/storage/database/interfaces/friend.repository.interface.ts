@@ -3,7 +3,6 @@ import { BaseRepositoryInterface } from './base.repository.interface.js';
 
 export default interface FriendRepositoryInterface
   extends BaseRepositoryInterface<Friend, Prisma.FriendCreateInput, Prisma.FriendUpdateInput> {
-
   findAllByUserIdAndStatus(userId: number, status: Status): Promise<Friend[]>;
 
   findAllByUserIdAndStatuses(
@@ -14,6 +13,8 @@ export default interface FriendRepositoryInterface
       include: { friend: true };
     }>[]
   >;
+
+  findAllByUserIdAndNotBlocked(userId: number): Promise<Friend[]>;
 
   findAllByFriendIdAndStatus(input: { friendId: number; status: Status }): Promise<
     Prisma.FriendGetPayload<{
