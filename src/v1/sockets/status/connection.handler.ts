@@ -29,7 +29,7 @@ export async function handleConnection(
       await sendStatus(userId, userStatus.OFFLINE);
     });
   } catch (error) {
-    console.error(`Error in connection handler: ${error}`);
+    console.error(`status 소켓 연결을 실패하였습니다. ${error}`);
   }
 }
 
