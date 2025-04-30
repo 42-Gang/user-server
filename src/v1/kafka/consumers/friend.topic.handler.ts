@@ -25,11 +25,11 @@ export default class FriendTopicHandler implements KafkaTopicHandler {
     if (parsedMessage.eventType == FRIEND_EVENTS.ADDED) {
       const data = friendAddMessage.parse(parsedMessage);
       await this.userStatusTopicHandler.handleUserStatusMessage({
-        userId: data.userAId,
+        userId: Number(data.userAId),
         status: userStatus.ONLINE,
       });
       await this.userStatusTopicHandler.handleUserStatusMessage({
-        userId: data.userBId,
+        userId: Number(data.userBId),
         status: userStatus.ONLINE,
       });
 
@@ -40,7 +40,7 @@ export default class FriendTopicHandler implements KafkaTopicHandler {
 
       await this.handleFriendBlockMessage(parsedMessage);
       await this.userStatusTopicHandler.handleUserStatusMessage({
-        userId: data.fromUserId,
+        userId: Number(data.fromUserId),
         status: userStatus.ONLINE,
       });
     }
@@ -49,7 +49,7 @@ export default class FriendTopicHandler implements KafkaTopicHandler {
 
       await this.handleFriendUnblockMessage(parsedMessage);
       await this.userStatusTopicHandler.handleUserStatusMessage({
-        userId: data.fromUserId,
+        userId: Number(data.fromUserId),
         status: userStatus.ONLINE,
       });
     }
@@ -91,6 +91,9 @@ export default class FriendTopicHandler implements KafkaTopicHandler {
     const { fromUserId, toUserId } = message;
 
     const toUserSocket = this.friendNamespace.in(`user:${toUserId}`);
+
+    console.log('friend-request emit!', fromUserId, toUserId);
+    
     toUserSocket?.emit('friend-request', {
       fromUserId : fromUserId,
       fromUserNickname: (await userRepository.findById(fromUserId))?.nickname ?? '알 수 없음',
@@ -103,6 +106,12 @@ export default class FriendTopicHandler implements KafkaTopicHandler {
     const { fromUserId, toUserId } = message;
 
     const toUserSocket = this.friendNamespace.in(`user:${toUserId}`);
+    if (!toUserSocket) {
+      console.error('소켓이 존재하지 않습니다.', toUserId);
+      return;
+    }
+    console.log('friend-accept emit!', fromUserId, toUserId);
+
     toUserSocket?.emit('friend-accept', {
       fromUserId : fromUserId,
       fromUserNickname: (await userRepository.findById(fromUserId))?.nickname ?? '알 수 없음',

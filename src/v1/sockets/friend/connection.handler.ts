@@ -8,6 +8,8 @@ export async function handleConnection(
         const userId = socket.data.userId;
         console.log(`🟢 [/friend] Connected: ${socket.id}, ${userId}`);
         
+        socket.join(`user:${userId}`);
+        
         socket.on('disconnect', () => {
             console.log(`🔴 [/friend] Disconnected: ${socket.id}`);
         });
