@@ -144,7 +144,7 @@ export default class UsersService {
   async getMyProfile(userId: number): Promise<TypeOf<typeof getProfileResponseSchema>> {
     return {
       status: STATUS.SUCCESS,
-      message: 'Profile retrieved successfully',
+      message: '프로필을 성공적으로 불러왔습니다.',
       data: await this.getProfileData(userId),
     };
   }

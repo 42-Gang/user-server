@@ -260,7 +260,7 @@ describe('친구 요청 목록 조회', () => {
     console.log(result.data?.requests)
     expect(result.data?.requests).toEqual([
       {
-        friendId: 2,
+        userId: 2,
         nickname: 'friend2',
         avatarUrl: 'url2',
       },
