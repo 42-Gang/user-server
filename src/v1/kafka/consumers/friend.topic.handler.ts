@@ -87,22 +87,28 @@ export default class FriendTopicHandler implements KafkaTopicHandler {
     toUserSocket?.socketsJoin(`user-status-${fromUserId}`);
   }
 
-  async handleFriendRequestMessage(userRepository: UserRepositoryInterface, message: TypeOf<typeof friendMessage>) {
+  async handleFriendRequestMessage(
+    userRepository: UserRepositoryInterface,
+    message: TypeOf<typeof friendMessage>,
+  ) {
     const { fromUserId, toUserId } = message;
 
     const toUserSocket = this.friendNamespace.in(`user:${toUserId}`);
 
     console.log('friend-request emit!', fromUserId, toUserId);
-    
+
     toUserSocket?.emit('friend-request', {
-      fromUserId : fromUserId,
+      fromUserId: fromUserId,
       fromUserNickname: (await userRepository.findById(fromUserId))?.nickname ?? '알 수 없음',
       toUserId: toUserId,
       timestamp: new Date().toISOString(),
     });
   }
 
-  async handleFriendAcceptedMessage(userRepository: UserRepositoryInterface, message: TypeOf<typeof friendMessage>) {
+  async handleFriendAcceptedMessage(
+    userRepository: UserRepositoryInterface,
+    message: TypeOf<typeof friendMessage>,
+  ) {
     const { fromUserId, toUserId } = message;
 
     const toUserSocket = this.friendNamespace.in(`user:${toUserId}`);
@@ -113,7 +119,7 @@ export default class FriendTopicHandler implements KafkaTopicHandler {
     console.log('friend-accept emit!', fromUserId, toUserId);
 
     toUserSocket?.emit('friend-accept', {
-      fromUserId : fromUserId,
+      fromUserId: fromUserId,
       fromUserNickname: (await userRepository.findById(fromUserId))?.nickname ?? '알 수 없음',
       toUserId: toUserId,
       timestamp: new Date().toISOString(),
