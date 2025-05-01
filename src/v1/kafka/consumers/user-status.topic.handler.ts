@@ -7,7 +7,7 @@ import { KafkaTopicHandler } from './kafka.topic.handler.js';
 
 export default class UserStatusTopicHandler implements KafkaTopicHandler {
   public readonly topic = TOPICS.USER_STATUS;
-  public readonly fromBeginning = true;
+  public readonly fromBeginning = false;
 
   constructor(private readonly statusNamespace: Namespace) {}
 
