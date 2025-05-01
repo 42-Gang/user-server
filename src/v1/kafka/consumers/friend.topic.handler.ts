@@ -10,7 +10,7 @@ import UserRepositoryInterface from 'src/v1/storage/database/interfaces/user.rep
 
 export default class FriendTopicHandler implements KafkaTopicHandler {
   public readonly topic = TOPICS.FRIEND;
-  public readonly fromBeginning = true;
+  public readonly fromBeginning = false;
 
   constructor(
     private readonly statusNamespace: Namespace,
