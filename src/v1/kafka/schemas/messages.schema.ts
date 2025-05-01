@@ -12,7 +12,7 @@ export const friendAddMessage = z.object({
   timestamp: z.string().optional(),
 });
 
-export const friendBlockMessage = z.object({
+export const friendMessage = z.object({
   fromUserId: z.number(),
   toUserId: z.number(),
   timestamp: z.string().optional(),

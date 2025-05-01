@@ -1,11 +1,12 @@
 import { Namespace } from 'socket.io';
 import { redis } from '../../../plugins/redis.js';
 import { TypeOf } from 'zod';
-import { friendAddMessage, friendBlockMessage } from '../schemas/messages.schema.js';
+import { friendAddMessage, friendMessage } from '../schemas/messages.schema.js';
 import { KafkaTopicHandler } from './kafka.topic.handler.js';
 import { FRIEND_EVENTS, TOPICS } from '../constants.js';
 import { userStatus } from '../../sockets/status/status.schema.js';
 import UserStatusTopicHandler from './user-status.topic.handler.js';
+import UserRepositoryInterface from 'src/v1/storage/database/interfaces/user.repository.interface.js';
 
 export default class FriendTopicHandler implements KafkaTopicHandler {
   public readonly topic = TOPICS.FRIEND;
@@ -14,6 +15,8 @@ export default class FriendTopicHandler implements KafkaTopicHandler {
   constructor(
     private readonly statusNamespace: Namespace,
     private readonly userStatusTopicHandler: UserStatusTopicHandler,
+    private readonly friendNamespace: Namespace,
+    private readonly userRepository: UserRepositoryInterface,
   ) {}
 
   async handle(messageValue: string): Promise<void> {
@@ -22,33 +25,43 @@ export default class FriendTopicHandler implements KafkaTopicHandler {
     if (parsedMessage.eventType == FRIEND_EVENTS.ADDED) {
       const data = friendAddMessage.parse(parsedMessage);
       await this.userStatusTopicHandler.handleUserStatusMessage({
-        userId: data.userAId,
+        userId: Number(data.userAId),
         status: userStatus.ONLINE,
       });
       await this.userStatusTopicHandler.handleUserStatusMessage({
-        userId: data.userBId,
+        userId: Number(data.userBId),
         status: userStatus.ONLINE,
       });
 
       await this.handleFriendAddMessage(data);
     }
     if (parsedMessage.eventType == FRIEND_EVENTS.BLOCK) {
-      const data = friendBlockMessage.parse(parsedMessage);
+      const data = friendMessage.parse(parsedMessage);
 
       await this.handleFriendBlockMessage(parsedMessage);
       await this.userStatusTopicHandler.handleUserStatusMessage({
-        userId: data.fromUserId,
+        userId: Number(data.fromUserId),
         status: userStatus.ONLINE,
       });
     }
     if (parsedMessage.eventType == FRIEND_EVENTS.UNBLOCK) {
-      const data = friendBlockMessage.parse(parsedMessage);
+      const data = friendMessage.parse(parsedMessage);
 
       await this.handleFriendUnblockMessage(parsedMessage);
       await this.userStatusTopicHandler.handleUserStatusMessage({
-        userId: data.fromUserId,
+        userId: Number(data.fromUserId),
         status: userStatus.ONLINE,
       });
+    }
+    if (parsedMessage.eventType == FRIEND_EVENTS.REQUESTED) {
+      friendMessage.parse(parsedMessage);
+
+      await this.handleFriendRequestMessage(this.userRepository, parsedMessage);
+    }
+    if (parsedMessage.eventType == FRIEND_EVENTS.ACCEPTED) {
+      friendMessage.parse(parsedMessage);
+
+      await this.handleFriendRequestMessage(this.userRepository, parsedMessage);
     }
   }
 
@@ -60,18 +73,51 @@ export default class FriendTopicHandler implements KafkaTopicHandler {
     await this.emitFriendStatus(this.statusNamespace, userAId.toString(), userBId.toString());
   }
 
-  async handleFriendBlockMessage(message: TypeOf<typeof friendBlockMessage>) {
+  async handleFriendBlockMessage(message: TypeOf<typeof friendMessage>) {
     const { fromUserId, toUserId } = message;
 
     const toUserSocket = this.statusNamespace.in(`user:${toUserId}`);
     toUserSocket?.socketsLeave(`user-status-${fromUserId}`);
   }
 
-  async handleFriendUnblockMessage(message: TypeOf<typeof friendBlockMessage>) {
+  async handleFriendUnblockMessage(message: TypeOf<typeof friendMessage>) {
     const { fromUserId, toUserId } = message;
 
     const toUserSocket = this.statusNamespace.in(`user:${toUserId}`);
     toUserSocket?.socketsJoin(`user-status-${fromUserId}`);
+  }
+
+  async handleFriendRequestMessage(userRepository: UserRepositoryInterface, message: TypeOf<typeof friendMessage>) {
+    const { fromUserId, toUserId } = message;
+
+    const toUserSocket = this.friendNamespace.in(`user:${toUserId}`);
+
+    console.log('friend-request emit!', fromUserId, toUserId);
+    
+    toUserSocket?.emit('friend-request', {
+      fromUserId : fromUserId,
+      fromUserNickname: (await userRepository.findById(fromUserId))?.nickname ?? '알 수 없음',
+      toUserId: toUserId,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  async handleFriendAcceptedMessage(userRepository: UserRepositoryInterface, message: TypeOf<typeof friendMessage>) {
+    const { fromUserId, toUserId } = message;
+
+    const toUserSocket = this.friendNamespace.in(`user:${toUserId}`);
+    if (!toUserSocket) {
+      console.error('소켓이 존재하지 않습니다.', toUserId);
+      return;
+    }
+    console.log('friend-accept emit!', fromUserId, toUserId);
+
+    toUserSocket?.emit('friend-accept', {
+      fromUserId : fromUserId,
+      fromUserNickname: (await userRepository.findById(fromUserId))?.nickname ?? '알 수 없음',
+      toUserId: toUserId,
+      timestamp: new Date().toISOString(),
+    });
   }
 
   private async emitFriendStatus(namespace: Namespace, userAId: string, userBId: string) {
