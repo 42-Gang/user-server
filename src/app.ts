@@ -57,7 +57,7 @@ function setDecorate(fastify: FastifyInstance) {
     if (!request.authenticated) {
       reply.code(401).send({
         status: STATUS.ERROR,
-        message: 'Unauthorized',
+        message: '인증되지 않은 요청입니다.',
       });
     }
   });
@@ -66,7 +66,7 @@ function setDecorate(fastify: FastifyInstance) {
     if (!request.internal) {
       return reply.status(403).send({
         status: STATUS.ERROR,
-        message: 'Forbidden',
+        message: '내부 접근만 허용됩니다.',
       });
     }
   });

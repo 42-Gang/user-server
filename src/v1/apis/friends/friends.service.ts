@@ -17,8 +17,10 @@ import UserRepositoryInterface from '../../storage/database/interfaces/user.repo
 import {
   sendBlockEvent,
   sendFriendAcceptEvent,
-  sendFriendAddedEvent, sendFriendRejectEvent,
-  sendFriendRequestEvent, sendUnblockEvent,
+  sendFriendAddedEvent,
+  sendFriendRejectEvent,
+  sendFriendRequestEvent,
+  sendUnblockEvent,
 } from '../../kafka/producers/friend.producer.js';
 
 export default class FriendsService {

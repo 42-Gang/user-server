@@ -204,7 +204,7 @@ describe('내정보 확인', () => {
     const result = await usersService.getMyProfile(userId);
     expect(result).toEqual({
       status: 'SUCCESS',
-      message: 'Profile retrieved successfully',
+      message: '프로필을 성공적으로 불러왔습니다.',
       data: {
         nickname: mockUser.nickname,
         avatarUrl: mockUser.avatarUrl,
