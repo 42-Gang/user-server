@@ -23,7 +23,7 @@ export default class AuthTopicHandler implements KafkaTopicHandler {
 
   async handleLogoutMessage(message: TypeOf<typeof authLogoutMessage>) {
     const { userId } = message;
-    console.log(`🔴 [/auth] Logout: ${userId}`);
+    console.log(`🔴 Logout: ${userId}`);
 
     await this.statusNamespace.to(`user:${userId}`).disconnectSockets();
     await this.friendNamespace.to(`user:${userId}`).disconnectSockets();
