@@ -7,10 +7,14 @@ import AuthTopicHandler from './consumers/auth.topic.handler.js';
 export async function startConsumer(
   friendTopicHandler: FriendTopicHandler,
   userStatusTopicHandler: UserStatusTopicHandler,
-  authTopicHandler: AuthTopicHandler
+  authTopicHandler: AuthTopicHandler,
 ) {
   const consumer = kafka.consumer({ groupId: 'STATUS', sessionTimeout: 10000 });
-  const handlers: KafkaTopicHandler[] = [friendTopicHandler, userStatusTopicHandler, authTopicHandler];
+  const handlers: KafkaTopicHandler[] = [
+    friendTopicHandler,
+    userStatusTopicHandler,
+    authTopicHandler,
+  ];
 
   await consumer.connect();
 
