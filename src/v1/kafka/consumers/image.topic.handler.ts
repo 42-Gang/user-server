@@ -9,7 +9,7 @@ export default class ImageTopicHandler implements KafkaTopicHandler {
   public readonly topic = TOPICS.IMAGE;
   public readonly fromBeginning = false;
 
-  constructor(private readonly userRepository: UserRepositoryInterface,) {}
+  constructor(private readonly userRepository: UserRepositoryInterface) {}
 
   async handle(messageValue: string): Promise<void> {
     const parsedMessage = JSON.parse(messageValue);
@@ -19,15 +19,15 @@ export default class ImageTopicHandler implements KafkaTopicHandler {
       await this.handleAvatarUpdate(data);
     }
   }
-  
+
   async handleAvatarUpdate(message: TypeOf<typeof avatarUpdateSchema>) {
     // 사용자 avatarUrl 업데이트
     const { userId, avatarUrl } = message;
     console.log(message);
-    const user = await this.userRepository.update(userId, {avatarUrl});
+    const user = await this.userRepository.update(userId, { avatarUrl });
     if (!user) {
-          throw new NotFoundException('사용자 정보를 업데이트할 수 없습니다.');
-        }
+      throw new NotFoundException('사용자 정보를 업데이트할 수 없습니다.');
+    }
     console.log(`✅ Avatar updated for user ${userId}: ${avatarUrl}`);
     /* 알림 전송- 필요 시 사용
     this.statusNamespace.to(`user:${userId}`).emit('user-avatar-updated', { avatarUrl });
