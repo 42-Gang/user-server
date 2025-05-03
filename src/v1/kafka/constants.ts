@@ -20,6 +20,7 @@ export const USER_STATUS_EVENTS = {
 export const AUTH_EVENTS = {
   LOGOUT: 'LOGOUT',
 };
+
 export const GROUP_IDS = {
   STATUS: 'status-consumer-group',
 };
