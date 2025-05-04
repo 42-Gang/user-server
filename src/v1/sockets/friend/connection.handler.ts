@@ -1,6 +1,6 @@
-import { Namespace, Socket } from 'socket.io';
+import { Socket } from 'socket.io';
 
-export async function handleConnection(socket: Socket, namespace: Namespace) {
+export async function handleConnection(socket: Socket) {
   try {
     const userId = socket.data.userId;
     console.log(`🟢 [/friend] Connected: ${socket.id}, ${userId}`);

@@ -17,3 +17,8 @@ export const friendMessage = z.object({
   toUserId: z.number(),
   timestamp: z.string().optional(),
 });
+
+export const authLogoutMessage = z.object({
+  userId: z.number(),
+  timestamp: z.string().optional(),
+});

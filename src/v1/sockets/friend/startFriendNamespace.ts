@@ -5,5 +5,5 @@ import { handleConnection } from './connection.handler.js';
 export default async function startFriendNamespace(namespace: Namespace) {
   namespace.use(socketMiddleware);
 
-  namespace.on('connection', (socket) => handleConnection(socket, namespace));
+  namespace.on('connection', (socket) => handleConnection(socket));
 }
