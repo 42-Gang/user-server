@@ -1,6 +1,7 @@
 export const TOPICS = {
   USER_STATUS: 'user-status',
   FRIEND: 'friend',
+  IMAGE: 'image',
   AUTH: 'auth',
 };
 
@@ -19,6 +20,10 @@ export const USER_STATUS_EVENTS = {
 
 export const AUTH_EVENTS = {
   LOGOUT: 'LOGOUT',
+};
+
+export const IMAGE_EVENTS = {
+  UPLOADED: 'UPLOADED',
 };
 
 export const GROUP_IDS = {
