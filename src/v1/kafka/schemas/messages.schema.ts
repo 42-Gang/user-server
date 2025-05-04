@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const userStatusMessage = z.object({
   userId: z.number(),
   status: z.enum(['ONLINE', 'OFFLINE', 'GAME', 'AWAY', 'LOBBY']),
-  timestamp: z.string().optional(),
+  timestamp: z.string(),
 });
 
 export const friendAddMessage = z.object({
