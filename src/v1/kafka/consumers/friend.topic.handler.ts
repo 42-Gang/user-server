@@ -6,7 +6,7 @@ import { KafkaTopicHandler } from './kafka.topic.handler.js';
 import { FRIEND_EVENTS, TOPICS } from '../constants.js';
 import { userStatus } from '../../sockets/status/status.schema.js';
 import UserStatusTopicHandler from './user-status.topic.handler.js';
-import UserRepositoryInterface from 'src/v1/storage/database/interfaces/user.repository.interface.js';
+import UserRepositoryInterface from '../../storage/database/interfaces/user.repository.interface.js';
 
 export default class FriendTopicHandler implements KafkaTopicHandler {
   public readonly topic = TOPICS.FRIEND;

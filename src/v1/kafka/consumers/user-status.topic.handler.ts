@@ -13,19 +13,24 @@ export default class UserStatusTopicHandler implements KafkaTopicHandler {
 
   async handle(messageValue: string): Promise<void> {
     const parsedMessage = JSON.parse(messageValue);
-    const data = userStatusMessage.parse(parsedMessage);
 
     if (parsedMessage.eventType == USER_STATUS_EVENTS.CHANGED) {
       const data = userStatusMessage.parse(parsedMessage);
       await this.handleUserStatusMessage(data);
     }
-    await this.handleUserStatusMessage(data);
   }
 
   async handleUserStatusMessage(message: TypeOf<typeof userStatusMessage>) {
-    const { userId, status } = message;
+    const { userId, status, timestamp } = message;
+
+    const current = await redis.get(`user:${userId}:status_timestamp`);
+    if (current && new Date(current).getTime() > new Date(timestamp).getTime()) {
+      // console.log(`이벤트 메세지 유효시간이 지났습니다. ${timestamp}`);
+      return;
+    }
 
     await redis.set(`user:${userId}:status`, status);
+    await redis.set(`user:${userId}:status_timestamp`, timestamp);
     this.statusNamespace.to(`user-status-${userId}`).emit('friend-status', {
       friendId: userId,
       status,
