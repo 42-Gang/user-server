@@ -27,10 +27,12 @@ export default class FriendTopicHandler implements KafkaTopicHandler {
       await this.userStatusTopicHandler.handleUserStatusMessage({
         userId: Number(data.userAId),
         status: userStatus.ONLINE,
+        timestamp: new Date().toISOString(),
       });
       await this.userStatusTopicHandler.handleUserStatusMessage({
         userId: Number(data.userBId),
         status: userStatus.ONLINE,
+        timestamp: new Date().toISOString(),
       });
 
       await this.handleFriendAddMessage(data);
@@ -42,6 +44,7 @@ export default class FriendTopicHandler implements KafkaTopicHandler {
       await this.userStatusTopicHandler.handleUserStatusMessage({
         userId: Number(data.fromUserId),
         status: userStatus.ONLINE,
+        timestamp: new Date().toISOString(),
       });
     }
     if (parsedMessage.eventType == FRIEND_EVENTS.UNBLOCK) {
@@ -51,6 +54,7 @@ export default class FriendTopicHandler implements KafkaTopicHandler {
       await this.userStatusTopicHandler.handleUserStatusMessage({
         userId: Number(data.fromUserId),
         status: userStatus.ONLINE,
+        timestamp: new Date().toISOString(),
       });
     }
     if (parsedMessage.eventType == FRIEND_EVENTS.REQUESTED) {
