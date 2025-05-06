@@ -1,5 +1,5 @@
 # 1. Build Stage
-FROM node:22.14.0 AS builder
+FROM node:22-bullseye-slim AS builder
 
 WORKDIR /app
 COPY package*.json ./
@@ -10,7 +10,9 @@ RUN npx prisma generate
 RUN npm run build:ts
 
 # 2. Production Stage
-FROM node:22.14.0
+FROM node:22-bullseye-slim
+
+RUN apt-get update && apt-get install -y ca-certificates curl
 
 WORKDIR /usr/src/app
 
