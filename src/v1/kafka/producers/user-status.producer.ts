@@ -13,6 +13,7 @@ export async function sendStatus(userId: number, status: userStatus) {
           eventType: USER_STATUS_EVENTS.CHANGED,
           userId,
           status,
+          timestamp: new Date().toISOString(),
         }),
       },
     ],
