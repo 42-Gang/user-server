@@ -124,11 +124,11 @@ export default class FriendTopicHandler implements KafkaTopicHandler {
     }
     console.log('friend-accept emit!', fromUserId, toUserId);
 
-    const nickname = await userRepository.findById(fromUserId);
+    const nickname = await userRepository.findById(toUserId);
 
     fromUserSocket?.emit('friend-accept', {
       fromUserId: fromUserId,
-      fromUserNickname: nickname,
+      toUserNickname: nickname,
       toUserId: toUserId,
       timestamp: timestamp,
     });
