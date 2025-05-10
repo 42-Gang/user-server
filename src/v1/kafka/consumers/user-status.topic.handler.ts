@@ -25,7 +25,6 @@ export default class UserStatusTopicHandler implements KafkaTopicHandler {
 
     const current = await redis.get(`user:${userId}:status_timestamp`);
     if (current && new Date(current).getTime() > new Date(timestamp).getTime()) {
-      // console.log(`이벤트 메세지 유효시간이 지났습니다. ${timestamp}`);
       return;
     }
 

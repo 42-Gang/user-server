@@ -65,7 +65,7 @@ export default class FriendTopicHandler implements KafkaTopicHandler {
     if (parsedMessage.eventType == FRIEND_EVENTS.ACCEPTED) {
       friendMessage.parse(parsedMessage);
 
-      await this.handleFriendRequestMessage(this.userRepository, parsedMessage);
+      await this.handleFriendAcceptedMessage(this.userRepository, parsedMessage);
     }
   }
 
@@ -95,17 +95,19 @@ export default class FriendTopicHandler implements KafkaTopicHandler {
     userRepository: UserRepositoryInterface,
     message: TypeOf<typeof friendMessage>,
   ) {
-    const { fromUserId, toUserId } = message;
+    const { fromUserId, toUserId, timestamp } = message;
 
     const toUserSocket = this.friendNamespace.in(`user:${toUserId}`);
 
     console.log('friend-request emit!', fromUserId, toUserId);
 
+    const nickname = await userRepository.findById(fromUserId);
+
     toUserSocket?.emit('friend-request', {
       fromUserId: fromUserId,
-      fromUserNickname: (await userRepository.findById(fromUserId))?.nickname ?? '알 수 없음',
+      fromUserNickname: nickname,
       toUserId: toUserId,
-      timestamp: new Date().toISOString(),
+      timestamp: timestamp,
     });
   }
 
@@ -113,20 +115,22 @@ export default class FriendTopicHandler implements KafkaTopicHandler {
     userRepository: UserRepositoryInterface,
     message: TypeOf<typeof friendMessage>,
   ) {
-    const { fromUserId, toUserId } = message;
+    const { fromUserId, toUserId, timestamp } = message;
 
-    const toUserSocket = this.friendNamespace.in(`user:${toUserId}`);
-    if (!toUserSocket) {
-      console.error('소켓이 존재하지 않습니다.', toUserId);
+    const fromUserSocket = this.friendNamespace.in(`user:${fromUserId}`);
+    if (!fromUserSocket) {
+      console.error('소켓이 존재하지 않습니다.', fromUserId);
       return;
     }
     console.log('friend-accept emit!', fromUserId, toUserId);
 
-    toUserSocket?.emit('friend-accept', {
+    const nickname = await userRepository.findById(toUserId);
+
+    fromUserSocket?.emit('friend-accept', {
       fromUserId: fromUserId,
-      fromUserNickname: (await userRepository.findById(fromUserId))?.nickname ?? '알 수 없음',
+      toUserNickname: nickname,
       toUserId: toUserId,
-      timestamp: new Date().toISOString(),
+      timestamp: timestamp,
     });
   }
 
