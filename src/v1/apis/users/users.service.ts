@@ -5,7 +5,8 @@ import {
 } from '../../common/exceptions/core.error.js';
 import { TypeOf } from 'zod';
 import { STATUS } from '../../common/constants/status.js';
-import UserRepositoryInterface from '../../storage/database/interfaces/user.repository.interface.js';
+import UserRepositoryInterface
+  from '../../storage/database/interfaces/user.repository.interface.js';
 import bcrypt from 'bcrypt';
 import { createUserInputSchema, createUserResponseSchema } from './schemas/create-user.schema.js';
 import { getUserResponseSchema } from './schemas/get-user.schema.js';
@@ -25,7 +26,8 @@ export default class UsersService {
   constructor(
     private readonly userRepository: UserRepositoryInterface,
     private readonly crypt: typeof bcrypt,
-  ) {}
+  ) {
+  }
 
   async createUser(
     body: TypeOf<typeof createUserInputSchema>,
@@ -103,10 +105,10 @@ export default class UsersService {
   }
 
   async searchUser({
-    userId,
-    query: { status, exceptMe },
-    nickname,
-  }: {
+                     userId,
+                     query: { status, exceptMe },
+                     nickname,
+                   }: {
     userId: number;
     query: TypeOf<typeof searchUserQuerySchema>;
     nickname: string;
@@ -142,6 +144,11 @@ export default class UsersService {
   }
 
   async getMyProfile(userId: number): Promise<TypeOf<typeof getProfileResponseSchema>> {
+    const user = await this.getProfileData(userId);
+    if (userId !== user.id) {
+      throw new UnAuthorizedException('본인만 접근할 수 있습니다.');
+    }
+
     return {
       status: STATUS.SUCCESS,
       message: '프로필을 성공적으로 불러왔습니다.',
@@ -156,8 +163,10 @@ export default class UsersService {
     }
 
     return {
+      id: user.id,
       nickname: user.nickname,
       avatarUrl: user.avatarUrl,
+      email: user.email,
     };
   }
 }
