@@ -25,7 +25,7 @@ export default class UsersService {
   constructor(
     private readonly userRepository: UserRepositoryInterface,
     private readonly crypt: typeof bcrypt,
-    private readonly baseUrl: string,
+    private readonly serverBaseUrl: string,
   ) {}
 
   async createUser(
@@ -148,7 +148,7 @@ export default class UsersService {
       throw new UnAuthorizedException('본인만 접근할 수 있습니다.');
     }
 
-    const avatarUrl = this.baseUrl + user.avatarUrl;
+    const avatarUrl = this.serverBaseUrl + user.avatarUrl;
 
     return {
       status: STATUS.SUCCESS,
