@@ -43,7 +43,7 @@ export default class UsersService {
       nickname: body.nickname,
       email: body.email,
       passwordHash: passwordHash,
-      avatarUrl: 'https://example.com/avatar.png',
+      avatarUrl: 'default.png',
     });
 
     return {
