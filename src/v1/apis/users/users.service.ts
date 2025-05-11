@@ -155,6 +155,12 @@ export default class UsersService {
       throw new NotFoundException(`유저 ID ${id}를 찾을 수 없습니다`);
     }
 
+    console.log('user:', user);
+    console.log('return:', {
+      nickname: user.nickname,
+      avatarUrl: user.avatarUrl,
+    });
+
     return {
       nickname: user.nickname,
       avatarUrl: user.avatarUrl,
