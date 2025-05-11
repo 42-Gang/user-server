@@ -133,7 +133,6 @@ export default class FriendTopicHandler implements KafkaTopicHandler {
       throw new NotFoundException('유저를 찾을 수 없습니다.');
     }
 
-
     fromUserSocket?.emit('friend-accept', {
       fromUserId: fromUserId,
       toUserNickname: toUser.nickname,
