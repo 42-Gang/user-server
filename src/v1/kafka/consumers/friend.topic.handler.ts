@@ -7,6 +7,7 @@ import { FRIEND_EVENTS, TOPICS } from '../constants.js';
 import { userStatus } from '../../sockets/status/status.schema.js';
 import UserStatusTopicHandler from './user-status.topic.handler.js';
 import UserRepositoryInterface from '../../storage/database/interfaces/user.repository.interface.js';
+import { NotFoundException } from 'src/v1/common/exceptions/core.error.js';
 
 export default class FriendTopicHandler implements KafkaTopicHandler {
   public readonly topic = TOPICS.FRIEND;
@@ -102,10 +103,13 @@ export default class FriendTopicHandler implements KafkaTopicHandler {
     console.log('friend-request emit!', fromUserId, toUserId);
 
     const fromUser = await userRepository.findById(fromUserId);
+    if (!fromUser) {
+      throw new NotFoundException('유저를 찾을 수 없습니다.');
+    }
 
     toUserSocket?.emit('friend-request', {
       fromUserId: fromUserId,
-      fromUserNickname: fromUser?.nickname,
+      fromUserNickname: fromUser.nickname,
       toUserId: toUserId,
       timestamp: timestamp,
     });
@@ -125,10 +129,14 @@ export default class FriendTopicHandler implements KafkaTopicHandler {
     console.log('friend-accept emit!', fromUserId, toUserId);
 
     const toUser = await userRepository.findById(toUserId);
+    if (!toUser) {
+      throw new NotFoundException('유저를 찾을 수 없습니다.');
+    }
+
 
     fromUserSocket?.emit('friend-accept', {
       fromUserId: fromUserId,
-      toUserNickname: toUser?.nickname,
+      toUserNickname: toUser.nickname,
       toUserId: toUserId,
       timestamp: timestamp,
     });
