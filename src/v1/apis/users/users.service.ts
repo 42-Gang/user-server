@@ -77,10 +77,7 @@ export default class UsersService {
   }
 
   async getUser(id: number): Promise<TypeOf<typeof getUserResponseSchema>> {
-    const user = await this.userRepository.findById(id);
-    if (!user) {
-      throw new NotFoundException('존재하지 않는 사용자입니다.');
-    }
+    const user = await this.getProfileData(id);
 
     return {
       status: STATUS.SUCCESS,
