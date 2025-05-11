@@ -25,6 +25,8 @@ declare global {
 
       KAFKA_BROKER: string;
       AUTH_SERVER: string;
+
+      SERVER_BASE_URL: string;
     }
   }
 }
