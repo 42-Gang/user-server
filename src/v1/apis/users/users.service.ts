@@ -44,7 +44,7 @@ export default class UsersService {
       nickname: body.nickname,
       email: body.email,
       passwordHash: passwordHash,
-      avatarUrl: 'default.png',
+      avatarUrl: '/avatars/default.png',
     });
 
     return {
@@ -148,17 +148,10 @@ export default class UsersService {
       throw new UnAuthorizedException('본인만 접근할 수 있습니다.');
     }
 
-    const avatarUrl = this.serverBaseUrl + user.avatarUrl;
-
     return {
       status: STATUS.SUCCESS,
       message: '프로필을 성공적으로 불러왔습니다.',
-      data: {
-        id: user.id,
-        email: user.email,
-        nickname: user.nickname,
-        avatarUrl: avatarUrl,
-      },
+      data: user,
     };
   }
 
@@ -167,12 +160,13 @@ export default class UsersService {
     if (!user) {
       throw new NotFoundException(`유저 ID ${id}를 찾을 수 없습니다`);
     }
+    const avatarUrl = this.serverBaseUrl + user.avatarUrl;
 
     return {
       id: user.id,
-      nickname: user.nickname,
-      avatarUrl: user.avatarUrl,
       email: user.email,
+      nickname: user.nickname,
+      avatarUrl,
     };
   }
 }

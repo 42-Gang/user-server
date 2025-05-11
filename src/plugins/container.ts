@@ -20,6 +20,10 @@ export async function setDiContainer(server: FastifyInstance) {
     crypt: asValue(bcrypt),
   });
 
+  diContainer.register({
+    serverBaseUrl: asValue(process.env.SERVER_BASE_URL),
+  });
+
   const NODE_EXTENSION = process.env.NODE_ENV == 'dev' ? 'ts' : 'js';
   await diContainer.loadModules(
     [
