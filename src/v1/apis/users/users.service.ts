@@ -49,7 +49,7 @@ export default class UsersService {
       nickname: body.nickname,
       email: body.email,
       passwordHash: passwordHash,
-      avatarUrl: 'avatars-default.png',
+      avatarUrl: await this.fileService.getUrl('avatars-default.png'),
     });
 
     return {
