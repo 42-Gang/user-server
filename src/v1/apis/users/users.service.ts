@@ -20,12 +20,13 @@ import {
 import { getProfileSchema, getProfileResponseSchema } from './schemas/get-profile.schema.js';
 import { Status } from '@prisma/client';
 import { searchUserQuerySchema, searchUserResponseSchema } from './schemas/search-user.schema.js';
+import FileService from '../file/file.service.js';
 
 export default class UsersService {
   constructor(
     private readonly userRepository: UserRepositoryInterface,
     private readonly crypt: typeof bcrypt,
-    private readonly serverBaseUrl: string,
+    private readonly fileService: FileService,
   ) {}
 
   async createUser(
@@ -115,7 +116,7 @@ export default class UsersService {
     // 실제 사용 가능한 status만 필터
     const realStatuses = status?.filter((s) => s !== 'NONE') as Status[] | undefined;
 
-    const users = await this.userRepository.findByNicknameStartsWith({
+    const foundUsers = await this.userRepository.findByNicknameStartsWith({
       nickname,
       userId,
       exceptMe,
@@ -124,20 +125,24 @@ export default class UsersService {
       statuses: realStatuses,
     });
 
+    const users = await Promise.all(
+      foundUsers.map(async (user) => {
+        const avatarUrl = await this.fileService.getUrl(user.avatarUrl);
+        return {
+          id: user.id,
+          email: user.email,
+          nickname: user.nickname,
+          avatarUrl,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+        };
+      }),
+    );
+
     return {
       status: STATUS.SUCCESS,
       data: {
-        users: users.map((user) => {
-          const avatarUrl = this.serverBaseUrl + user.avatarUrl;
-          return {
-            id: user.id,
-            email: user.email,
-            nickname: user.nickname,
-            avatarUrl,
-            createdAt: user.createdAt,
-            updatedAt: user.updatedAt,
-          };
-        }),
+        users,
       },
     };
   }
@@ -169,7 +174,7 @@ export default class UsersService {
     if (!user) {
       throw new NotFoundException(`유저 ID ${id}를 찾을 수 없습니다`);
     }
-    const avatarUrl = this.serverBaseUrl + user.avatarUrl;
+    const avatarUrl = await this.fileService.getUrl(user.avatarUrl);
 
     return {
       id: user.id,
