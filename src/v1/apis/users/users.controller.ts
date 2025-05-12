@@ -8,6 +8,7 @@ import { searchUserParamsSchema, searchUserQuerySchema } from './schemas/search-
 import { authenticateUserInputSchema } from './schemas/authenticate-user.schema.js';
 import { checkDuplicatedEmailParamsSchema } from './schemas/check-duplicated-email.schema.js';
 import { STATUS } from '../../common/constants/status.js';
+import { BadRequestException } from '../../common/exceptions/core.error.js';
 
 export default class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -61,6 +62,17 @@ export default class UsersController {
 
   getMyProfile = async (request: FastifyRequest, reply: FastifyReply) => {
     const result = await this.usersService.getMyProfile(request.userId);
+    reply.status(200).send(result);
+  };
+
+  uploadAvatar = async (request: FastifyRequest, reply: FastifyReply) => {
+    console.log(request);
+    const file = await request.file();
+    if (!file) {
+      throw new BadRequestException('파일이 업로드되지 않았습니다.');
+    }
+
+    const result = await this.usersService.uploadAvatarImage(request.userId, file);
     reply.status(200).send(result);
   };
 }

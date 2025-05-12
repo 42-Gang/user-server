@@ -21,6 +21,8 @@ import { getProfileSchema, getProfileResponseSchema } from './schemas/get-profil
 import { Status } from '@prisma/client';
 import { searchUserQuerySchema, searchUserResponseSchema } from './schemas/search-user.schema.js';
 import FileService from '../file/file.service.js';
+import { MultipartFile } from '@fastify/multipart';
+import { uploadAvatarResponseSchema } from './schemas/upload-avatar.schema.js';
 
 export default class UsersService {
   constructor(
@@ -98,6 +100,19 @@ export default class UsersService {
     return {
       status: STATUS.SUCCESS,
       data: user,
+    };
+  }
+
+  async uploadAvatarImage(
+    userId: number,
+    file: MultipartFile,
+  ): Promise<TypeOf<typeof uploadAvatarResponseSchema>> {
+    const url = await this.fileService.upload(file, 'aoeifjoaewi.png');
+    return {
+      status: STATUS.SUCCESS,
+      data: {
+        url,
+      },
     };
   }
 
