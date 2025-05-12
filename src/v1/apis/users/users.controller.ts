@@ -66,7 +66,6 @@ export default class UsersController {
   };
 
   uploadAvatar = async (request: FastifyRequest, reply: FastifyReply) => {
-    console.log(request);
     const file = await request.file();
     if (!file) {
       throw new BadRequestException('파일이 업로드되지 않았습니다.');

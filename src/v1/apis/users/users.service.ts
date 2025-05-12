@@ -23,6 +23,8 @@ import { searchUserQuerySchema, searchUserResponseSchema } from './schemas/searc
 import FileService from '../file/file.service.js';
 import { MultipartFile } from '@fastify/multipart';
 import { uploadAvatarResponseSchema } from './schemas/upload-avatar.schema.js';
+import { v4 as uuidv4 } from 'uuid';
+import * as path from 'node:path';
 
 export default class UsersService {
   constructor(
@@ -107,7 +109,14 @@ export default class UsersService {
     userId: number,
     file: MultipartFile,
   ): Promise<TypeOf<typeof uploadAvatarResponseSchema>> {
-    const url = await this.fileService.upload(file, 'aoeifjoaewi.png');
+    const ext = path.extname(file.filename);
+    const filename = `${userId}-${uuidv4()}${ext}`;
+
+    const url = await this.fileService.upload(file, filename);
+    await this.userRepository.update(userId, {
+      avatarUrl: filename,
+    });
+
     return {
       status: STATUS.SUCCESS,
       data: {
