@@ -28,11 +28,11 @@ export default class FileService {
       },
     });
 
-    console.log(response, 'response');
-
     if (response.statusCode !== 200) {
       throw new HttpException(response.statusCode, response.body.message);
     }
+
+    console.log('response', response.body);
 
     return response.body.data.url;
   }

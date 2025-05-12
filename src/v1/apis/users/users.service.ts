@@ -45,7 +45,7 @@ export default class UsersService {
       nickname: body.nickname,
       email: body.email,
       passwordHash: passwordHash,
-      avatarUrl: '/avatars/default.png',
+      avatarUrl: 'avatars-default.png',
     });
 
     return {
