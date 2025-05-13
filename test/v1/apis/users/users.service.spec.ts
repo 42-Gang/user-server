@@ -10,14 +10,17 @@ import bcrypt from 'bcrypt';
 import UserRepositoryInterface from '../../../../src/v1/storage/database/interfaces/user.repository.interface.js';
 import UserRepositoryPrisma from '../../../../src/v1/storage/database/prisma/user.repository.js';
 import mockPrisma from '../../mocks/mockPrisma.js';
+import FileService from '../../../../src/v1/apis/file/file.service.js';
+import { gotClient } from '../../../../src/plugins/http.client.js';
 
 let userRepository: UserRepositoryInterface;
 let usersService: UsersService;
 
 beforeEach(() => {
   userRepository = new UserRepositoryPrisma(mockPrisma);
+  const fileService = new FileService(gotClient, 'http://localhost:3000');
 
-  usersService = new UsersService(userRepository, bcrypt, 'http://localhost:3000');
+  usersService = new UsersService(userRepository, bcrypt, fileService);
 });
 
 describe('회원가입', () => {
