@@ -38,6 +38,12 @@ export class ConflictException extends HttpException {
   }
 }
 
+export class UnSupportedMediaTypeException extends HttpException {
+  constructor(message: string) {
+    super(415, message || '지원하지 않는 미디어 타입');
+  }
+}
+
 export class InternalServerException extends HttpException {
   constructor(message: string) {
     super(500, message || '서버 내부 오류');

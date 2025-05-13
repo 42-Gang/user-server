@@ -2,6 +2,7 @@ import {
   ConflictException,
   NotFoundException,
   UnAuthorizedException,
+  UnSupportedMediaTypeException,
 } from '../../common/exceptions/core.error.js';
 import { TypeOf } from 'zod';
 import { STATUS } from '../../common/constants/status.js';
@@ -113,6 +114,10 @@ export default class UsersService {
     file: MultipartFile,
   ): Promise<TypeOf<typeof uploadAvatarResponseSchema>> {
     const ext = path.extname(file.filename);
+    if (ext !== '.png' && ext !== '.jpg' && ext !== '.jpeg') {
+      throw new UnSupportedMediaTypeException('png, jpg, jpeg 확장자만 지원합니다.');
+    }
+
     const filename = `${userId}-${uuidv4()}${ext}`;
 
     const url = await this.fileService.upload(file, filename);
