@@ -10,6 +10,7 @@ import { producer } from './plugins/kafka.js';
 import fastifyCors from '@fastify/cors';
 import { asClass, asFunction, AwilixContainer, Lifetime } from 'awilix';
 import { startConsumer } from './v1/kafka/consumer.js';
+import multipart from '@fastify/multipart';
 
 export async function configureServer(server: FastifyInstance) {
   server.setValidatorCompiler(validatorCompiler); // Fastify 유효성 검사기 설정
@@ -27,6 +28,11 @@ export async function registerPlugins(server: FastifyInstance) {
   await registerRedisPlugin(server); // Redis 플러그인 등록
   await setDiContainer(server); // 의존성 주입 컨테이너 설정
   await registerSwaggerPlugin(server); // Swagger 플러그인 등록
+  await server.register(multipart, {
+    limits: {
+      fileSize: 10 * 1024 * 1024, // 10MB
+    },
+  }); // multipart/form-data 지원
   await server.register(app, { prefix: '/api' }); // REST API 라우트 등록
 }
 

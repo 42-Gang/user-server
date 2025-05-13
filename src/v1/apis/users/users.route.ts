@@ -16,6 +16,7 @@ import {
 import { coreResponseSchema } from '../../common/schema/core.schema.js';
 import { checkDuplicatedEmailParamsSchema } from './schemas/check-duplicated-email.schema.js';
 import { getProfileResponseSchema } from './schemas/get-profile.schema.js';
+import { uploadAvatarResponseSchema } from './schemas/upload-avatar.schema.js';
 
 export default async function usersRoutes(fastify: FastifyInstance) {
   const usersController: UsersController = fastify.diContainer.resolve('usersController');
@@ -133,6 +134,20 @@ export default async function usersRoutes(fastify: FastifyInstance) {
           },
         },
         auth: true,
+      },
+    },
+    {
+      method: 'POST',
+      url: '/avatar',
+      handler: usersController.uploadAvatar,
+      options: {
+        schema: {
+          tags: ['users'],
+          description: '아바타 업로드',
+          response: {
+            200: uploadAvatarResponseSchema,
+          },
+        },
       },
     },
   ];
