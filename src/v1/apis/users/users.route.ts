@@ -11,7 +11,6 @@ import {
 import {
   searchUserParamsSchema,
   searchUserQuerySchema,
-  searchUserResponseSchema,
 } from './schemas/search-user.schema.js';
 import {
   authenticateUserInputSchema,
@@ -101,7 +100,7 @@ export default async function usersRoutes(fastify: FastifyInstance) {
           params: searchUserParamsSchema,
           querystring: searchUserQuerySchema,
           response: {
-            200: searchUserResponseSchema,
+            200: coreResponseSchema,
           },
         },
         auth: true,
