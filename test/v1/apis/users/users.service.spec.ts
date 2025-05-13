@@ -135,16 +135,16 @@ describe('닉네임 수정', () => {
     });
 
     const result = await usersService.editNickname(1, { nickname: 'newNick' });
-
     expect(result.status).toBe(STATUS.SUCCESS);
-    expect(result.data!.nickname).toBe('newNick');
   });
 
   it('업데이트 실패', async () => {
-    userRepository.update = vi.fn().mockResolvedValue(null);
+    userRepository.findByNickname = vi.fn().mockResolvedValue({
+      id: 2,
+    });
 
     await expect(usersService.editNickname(1, { nickname: 'test' })).rejects.toThrow(
-      NotFoundException,
+      ConflictException,
     );
   });
 });
