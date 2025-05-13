@@ -91,6 +91,11 @@ export default class UsersService {
     id: number,
     body: TypeOf<typeof editNicknameInputSchema>,
   ): Promise<TypeOf<typeof editNicknameResponseSchema>> {
+    const isExistingUser = await this.userRepository.findByNickname(body.nickname);
+    if (isExistingUser) {
+      throw new ConflictException('이미 존재하는 닉네임입니다.');
+    }
+
     const user = await this.userRepository.update(id, body);
     if (!user) {
       throw new NotFoundException('사용자 정보를 업데이트할 수 없습니다.');
