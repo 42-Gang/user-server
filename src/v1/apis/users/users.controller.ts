@@ -74,4 +74,9 @@ export default class UsersController {
     const result = await this.usersService.uploadAvatarImage(request.userId, file);
     reply.status(200).send(result);
   };
+
+  deleteAvatar = async (request: FastifyRequest, reply: FastifyReply) => {
+    const result = await this.usersService.deleteAvatarImage(request.userId);
+    reply.status(200).send(result);
+  };
 }

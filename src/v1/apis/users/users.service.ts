@@ -27,7 +27,9 @@ import { MultipartFile } from '@fastify/multipart';
 import { uploadAvatarResponseSchema } from './schemas/upload-avatar.schema.js';
 import { v4 as uuidv4 } from 'uuid';
 import * as path from 'node:path';
+import { deleteAvatarResponseSchema } from './schemas/delete-avatar.schema.js';
 
+const avatarDefaultUrl = 'avatars-default.png';
 export default class UsersService {
   constructor(
     private readonly userRepository: UserRepositoryInterface,
@@ -51,7 +53,7 @@ export default class UsersService {
       nickname: body.nickname,
       email: body.email,
       passwordHash: passwordHash,
-      avatarUrl: 'avatars-default.png',
+      avatarUrl: avatarDefaultUrl,
     });
 
     return {
@@ -136,6 +138,21 @@ export default class UsersService {
       data: {
         url,
       },
+    };
+  }
+
+  async deleteAvatarImage(userId: number): Promise<TypeOf<typeof deleteAvatarResponseSchema>> {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new NotFoundException('유저를 찾을 수 없습니다.');
+    }
+
+    await this.userRepository.update(userId, {
+      avatarUrl: avatarDefaultUrl,
+    });
+    return {
+      status: STATUS.SUCCESS,
+      message: '아바타 이미지가 성공적으로 삭제되었습니다.',
     };
   }
 

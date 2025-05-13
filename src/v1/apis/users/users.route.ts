@@ -150,6 +150,21 @@ export default async function usersRoutes(fastify: FastifyInstance) {
         },
       },
     },
+    {
+      method: 'DELETE',
+      url: '/avatar',
+      handler: usersController.deleteAvatar,
+      options: {
+        schema: {
+          tags: ['users'],
+          description: '아바타 삭제',
+          response: {
+            200: coreResponseSchema,
+          },
+        },
+        auth: true,
+      },
+    },
   ];
   await addRoutes(fastify, routes);
 }
