@@ -5,4 +5,9 @@ export const getUserParamsSchema = userSchema.pick({
   id: true,
 });
 
-export const getUserResponseSchema = createResponseSchema(exceptedSensitiveFields);
+export const getUserResponseSchema = createResponseSchema(
+  exceptedSensitiveFields.omit({
+    createdAt: true,
+    updatedAt: true,
+  }),
+);

@@ -2,6 +2,7 @@ import {
   ConflictException,
   NotFoundException,
   UnAuthorizedException,
+  UnSupportedMediaTypeException,
 } from '../../common/exceptions/core.error.js';
 import { TypeOf } from 'zod';
 import { STATUS } from '../../common/constants/status.js';
@@ -19,12 +20,18 @@ import {
 } from './schemas/authenticate-user.schema.js';
 import { getProfileSchema, getProfileResponseSchema } from './schemas/get-profile.schema.js';
 import { Status } from '@prisma/client';
-import { searchUserQuerySchema } from './schemas/search-user.schema.js';
+import { searchUserQuerySchema, searchUserResponseSchema } from './schemas/search-user.schema.js';
+import FileService from '../file/file.service.js';
+import { MultipartFile } from '@fastify/multipart';
+import { uploadAvatarResponseSchema } from './schemas/upload-avatar.schema.js';
+import { v4 as uuidv4 } from 'uuid';
+import * as path from 'node:path';
 
 export default class UsersService {
   constructor(
     private readonly userRepository: UserRepositoryInterface,
     private readonly crypt: typeof bcrypt,
+    private readonly fileService: FileService,
   ) {}
 
   async createUser(
@@ -43,12 +50,15 @@ export default class UsersService {
       nickname: body.nickname,
       email: body.email,
       passwordHash: passwordHash,
-      avatarUrl: 'https://example.com/avatar.png',
+      avatarUrl: 'avatars-default.png',
     });
 
     return {
       status: STATUS.SUCCESS,
-      data: user,
+      data: {
+        ...user,
+        avatarUrl: await this.fileService.getUrl(user.avatarUrl),
+      },
     };
   }
 
@@ -76,10 +86,7 @@ export default class UsersService {
   }
 
   async getUser(id: number): Promise<TypeOf<typeof getUserResponseSchema>> {
-    const user = await this.userRepository.findById(id);
-    if (!user) {
-      throw new NotFoundException('존재하지 않는 사용자입니다.');
-    }
+    const user = await this.getProfileData(id);
 
     return {
       status: STATUS.SUCCESS,
@@ -102,6 +109,30 @@ export default class UsersService {
     };
   }
 
+  async uploadAvatarImage(
+    userId: number,
+    file: MultipartFile,
+  ): Promise<TypeOf<typeof uploadAvatarResponseSchema>> {
+    const ext = path.extname(file.filename);
+    if (ext !== '.png' && ext !== '.jpg' && ext !== '.jpeg') {
+      throw new UnSupportedMediaTypeException('png, jpg, jpeg 확장자만 지원합니다.');
+    }
+
+    const filename = `${userId}-${uuidv4()}${ext}`;
+
+    const url = await this.fileService.upload(file, filename);
+    await this.userRepository.update(userId, {
+      avatarUrl: filename,
+    });
+
+    return {
+      status: STATUS.SUCCESS,
+      data: {
+        url,
+      },
+    };
+  }
+
   async searchUser({
     userId,
     query: { status, exceptMe },
@@ -110,14 +141,14 @@ export default class UsersService {
     userId: number;
     query: TypeOf<typeof searchUserQuerySchema>;
     nickname: string;
-  }) {
+  }): Promise<TypeOf<typeof searchUserResponseSchema>> {
     // all: status가 없으면 전체조회, noneFlag: status 배열에 'NONE' 포함 여부
     const all = status === undefined;
     const noneFlag = status?.includes('NONE') ?? false;
     // 실제 사용 가능한 status만 필터
     const realStatuses = status?.filter((s) => s !== 'NONE') as Status[] | undefined;
 
-    const users = await this.userRepository.findByNicknameStartsWith({
+    const foundUsers = await this.userRepository.findByNicknameStartsWith({
       nickname,
       userId,
       exceptMe,
@@ -126,9 +157,25 @@ export default class UsersService {
       statuses: realStatuses,
     });
 
+    const users = await Promise.all(
+      foundUsers.map(async (user) => {
+        const avatarUrl = await this.fileService.getUrl(user.avatarUrl);
+        return {
+          id: user.id,
+          email: user.email,
+          nickname: user.nickname,
+          avatarUrl,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+        };
+      }),
+    );
+
     return {
       status: STATUS.SUCCESS,
-      data: { users },
+      data: {
+        users,
+      },
     };
   }
 
@@ -142,10 +189,15 @@ export default class UsersService {
   }
 
   async getMyProfile(userId: number): Promise<TypeOf<typeof getProfileResponseSchema>> {
+    const user = await this.getProfileData(userId);
+    if (userId !== user.id) {
+      throw new UnAuthorizedException('본인만 접근할 수 있습니다.');
+    }
+
     return {
       status: STATUS.SUCCESS,
       message: '프로필을 성공적으로 불러왔습니다.',
-      data: await this.getProfileData(userId),
+      data: user,
     };
   }
 
@@ -154,10 +206,13 @@ export default class UsersService {
     if (!user) {
       throw new NotFoundException(`유저 ID ${id}를 찾을 수 없습니다`);
     }
+    const avatarUrl = await this.fileService.getUrl(user.avatarUrl);
 
     return {
+      id: user.id,
+      email: user.email,
       nickname: user.nickname,
-      avatarUrl: user.avatarUrl,
+      avatarUrl,
     };
   }
 }

@@ -5,7 +5,7 @@ export const userSchema = z.object({
   nickname: z.string().min(2).max(8),
   email: z.string().email(),
   passwordHash: z.string().optional(),
-  avatarUrl: z.string(),
+  avatarUrl: z.string().url(),
   twoFactorAuth: z.boolean(),
   createdAt: z.date(),
   updatedAt: z.date(),

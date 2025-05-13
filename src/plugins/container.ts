@@ -4,6 +4,7 @@ import { asClass, asValue, Lifetime } from 'awilix';
 import prisma from './prisma.js';
 import { gotClient } from './http.client.js';
 import bcrypt from 'bcrypt';
+import * as process from 'node:process';
 
 export async function setDiContainer(server: FastifyInstance) {
   server.register(fastifyAwilixPlugin, {
@@ -18,6 +19,10 @@ export async function setDiContainer(server: FastifyInstance) {
     redisClient: asValue(server.redis),
     httpClient: asValue(gotClient),
     crypt: asValue(bcrypt),
+  });
+
+  diContainer.register({
+    fileServerUrl: asValue(process.env.FILE_SERVER_URL),
   });
 
   const NODE_EXTENSION = process.env.NODE_ENV == 'dev' ? 'ts' : 'js';

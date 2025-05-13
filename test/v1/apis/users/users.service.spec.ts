@@ -17,7 +17,7 @@ let usersService: UsersService;
 beforeEach(() => {
   userRepository = new UserRepositoryPrisma(mockPrisma);
 
-  usersService = new UsersService(userRepository, bcrypt);
+  usersService = new UsersService(userRepository, bcrypt, 'http://localhost:3000');
 });
 
 describe('회원가입', () => {
@@ -196,8 +196,9 @@ describe('내정보 확인', () => {
     const userId = 1;
     const mockUser = {
       id: userId,
+      email: 'abc123@google.com',
       nickname: 'user1',
-      avatarUrl: 'https://example.com/avatar.png',
+      avatarUrl: '/avatars/avatar.png',
     };
     userRepository.findById = vi.fn().mockResolvedValue(mockUser);
 
@@ -206,8 +207,10 @@ describe('내정보 확인', () => {
       status: 'SUCCESS',
       message: '프로필을 성공적으로 불러왔습니다.',
       data: {
+        id: mockUser.id,
         nickname: mockUser.nickname,
-        avatarUrl: mockUser.avatarUrl,
+        avatarUrl: 'http://localhost:3000' + mockUser.avatarUrl,
+        email: mockUser.email,
       },
     });
   });
