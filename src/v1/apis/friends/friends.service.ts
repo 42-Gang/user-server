@@ -22,11 +22,13 @@ import {
   sendFriendRequestEvent,
   sendUnblockEvent,
 } from '../../kafka/producers/friend.producer.js';
+import FileService from '../file/file.service.js';
 
 export default class FriendsService {
   constructor(
     private readonly userRepository: UserRepositoryInterface,
     private readonly friendRepository: FriendRepositoryInterface,
+    private readonly fileService: FileService,
   ) {}
 
   async request(userId: number, friendId: number): Promise<TypeOf<typeof friendResponseSchema>> {
@@ -160,12 +162,14 @@ export default class FriendsService {
   ): Promise<TypeOf<typeof friendListResponseSchema>> {
     const fetchResults = await this.friendRepository.findAllByUserIdAndStatuses(userId, statuses);
 
-    const friends = fetchResults.map((result) => ({
-      friendId: result.friendId,
-      nickname: result.friend.nickname,
-      avatarUrl: result.friend.avatarUrl,
-      status: result.status,
-    }));
+    const friends = await Promise.all(
+      fetchResults.map(async (result) => ({
+        friendId: result.friendId,
+        nickname: result.friend.nickname,
+        avatarUrl: await this.fileService.getUrl(result.friend.avatarUrl),
+        status: result.status,
+      })),
+    );
 
     return {
       status: STATUS.SUCCESS,
@@ -182,11 +186,13 @@ export default class FriendsService {
       status: Status.PENDING,
     });
 
-    const requests = allRequests.map((request) => ({
-      userId: request.userId,
-      nickname: request.user.nickname,
-      avatarUrl: request.user.avatarUrl,
-    }));
+    const requests = await Promise.all(
+      allRequests.map(async (request) => ({
+        userId: request.userId,
+        nickname: request.user.nickname,
+        avatarUrl: await this.fileService.getUrl(request.user.avatarUrl),
+      })),
+    );
 
     return {
       status: STATUS.SUCCESS,
