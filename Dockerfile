@@ -12,8 +12,6 @@ RUN npm run build:ts
 # 2. Production Stage
 FROM node:22-bullseye-slim
 
-RUN apt-get update && apt-get install -y ca-certificates curl
-
 WORKDIR /usr/src/app
 
 COPY package*.json ./
