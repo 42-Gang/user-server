@@ -43,8 +43,14 @@ export const searchUserQuerySchema = z.object({
   }, z.boolean().optional()),
 });
 
+export const searchUserResponseFields = exceptedSensitiveFields.omit({
+  createdAt: true,
+  updatedAt: true,
+  email: true,
+});
+
 export const searchUserResponseSchema = createResponseSchema(
   z.object({
-    users: z.array(exceptedSensitiveFields),
+    users: z.array(searchUserResponseFields),
   }),
 );

@@ -1,0 +1,28 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/v1/file/url",
+    "queryParameters": {
+      "key": {
+        "matches": ".*"
+      }
+    },
+    "headers": {
+      "x-internal": {
+        "equalTo": "true"
+      }
+    }
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "message": "Signed URL generated",
+      "data": {
+        "url": "https://mock-s3.com/path/to/file.jpg"
+      }
+    }
+  }
+}
