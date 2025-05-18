@@ -30,11 +30,6 @@ export default class FriendTopicHandler implements KafkaTopicHandler {
         status: userStatus.ONLINE,
         timestamp: new Date().toISOString(),
       });
-      await this.userStatusTopicHandler.handleUserStatusMessage({
-        userId: Number(data.userBId),
-        status: userStatus.ONLINE,
-        timestamp: new Date().toISOString(),
-      });
 
       await this.handleFriendAddMessage(data);
     }
