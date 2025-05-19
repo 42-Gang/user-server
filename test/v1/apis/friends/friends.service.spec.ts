@@ -13,16 +13,32 @@ import FriendRepositoryInterface from '../../../../src/v1/storage/database/inter
 import UserRepositoryPrisma from '../../../../src/v1/storage/database/prisma/user.repository.js';
 import mockPrisma from '../../mocks/mockPrisma.js';
 import FriendRepositoryPrisma from '../../../../src/v1/storage/database/prisma/friend.repository.js';
+import FileService from '../../../../src/v1/apis/file/file.service.js';
+import { mockHttpClient } from '../../mocks/mockHttpClient.js';
+import * as kafkaModule from '../../../../src/plugins/kafka.js';
 
+vi.mock('../../../../src/plugins/kafka.js', () => {
+  return {
+    producer: {
+      send: vi.fn().mockResolvedValue(true), // 메시지를 보내는 것처럼만 처리
+      connect: vi.fn(),
+      disconnect: vi.fn(),
+    },
+  };
+});
+
+let fileService: FileService;
 let userRepository: UserRepositoryInterface;
 let friendRepository: FriendRepositoryInterface;
 let friendsService: FriendsService;
 
-beforeEach(() => {
+beforeEach(async () => {
   userRepository = new UserRepositoryPrisma(mockPrisma);
   friendRepository = new FriendRepositoryPrisma(mockPrisma);
+  fileService = new FileService(mockHttpClient, 'http://localhost:3000');
 
-  friendsService = new FriendsService(userRepository, friendRepository);
+  friendsService = new FriendsService(userRepository, friendRepository, fileService);
+  await kafkaModule.producer.connect();
 });
 
 describe('친구 요청', () => {
@@ -234,6 +250,7 @@ describe('친구 목록 조회', () => {
         status: Status.ACCEPTED,
       },
     ]);
+    fileService.getUrl = vi.fn().mockResolvedValue('https://example.com/avatar.png');
 
     const result = await friendsService.getFriends(1, [Status.ACCEPTED]);
 
@@ -254,15 +271,16 @@ describe('친구 요청 목록 조회', () => {
         },
       },
     ]);
+    fileService.getUrl = vi.fn().mockResolvedValue('https://example.com/avatar.png');
 
     const result = await friendsService.getRequests(1);
     expect(result.status).toBe(STATUS.SUCCESS);
-    console.log(result.data?.requests)
+    console.log(result.data?.requests);
     expect(result.data?.requests).toEqual([
       {
         userId: 2,
         nickname: 'friend2',
-        avatarUrl: 'url2',
+        avatarUrl: 'https://example.com/avatar.png',
       },
     ]);
   });
