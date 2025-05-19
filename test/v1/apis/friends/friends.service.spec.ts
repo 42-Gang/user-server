@@ -15,18 +15,30 @@ import mockPrisma from '../../mocks/mockPrisma.js';
 import FriendRepositoryPrisma from '../../../../src/v1/storage/database/prisma/friend.repository.js';
 import FileService from '../../../../src/v1/apis/file/file.service.js';
 import { mockHttpClient } from '../../mocks/mockHttpClient.js';
+import * as kafkaModule from '../../../../src/plugins/kafka.js';
+
+vi.mock('../../../../src/plugins/kafka.js', () => {
+  return {
+    producer: {
+      send: vi.fn().mockResolvedValue(true), // 메시지를 보내는 것처럼만 처리
+      connect: vi.fn(),
+      disconnect: vi.fn(),
+    },
+  };
+});
 
 let fileService: FileService;
 let userRepository: UserRepositoryInterface;
 let friendRepository: FriendRepositoryInterface;
 let friendsService: FriendsService;
 
-beforeEach(() => {
+beforeEach(async () => {
   userRepository = new UserRepositoryPrisma(mockPrisma);
   friendRepository = new FriendRepositoryPrisma(mockPrisma);
   fileService = new FileService(mockHttpClient, 'http://localhost:3000');
 
   friendsService = new FriendsService(userRepository, friendRepository, fileService);
+  await kafkaModule.producer.connect();
 });
 
 describe('친구 요청', () => {
