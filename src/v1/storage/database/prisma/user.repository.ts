@@ -45,23 +45,31 @@ export default class UserRepositoryPrisma implements UserRepositoryInterface {
     };
     console.log('noneFlag', noneFlag, 'userId', userId, 'all', all, 'statuses', statuses);
     if (!all && userId != null) {
+      const orCondition: Prisma.UserWhereInput[] = [];
+
       if (noneFlag) {
-        // 친구 관계가 전혀 없는 유저
-        where.friendOf = {
-          none: {
-            userId: userId,
-          },
-        };
-      } else if (statuses && statuses.length > 0) {
-        // 특정 상태의 친구만 포함
-        where.friendOf = {
-          some: {
-            userId: userId,
-            status: {
-              in: statuses,
+        orCondition.push({
+          friendOf: {
+            none: {
+              userId: userId,
             },
           },
-        };
+        });
+      } 
+      if (statuses && statuses.length > 0) {
+        orCondition.push({
+          friendOf: {
+            some: {
+              userId: userId,
+              status: {
+                in: statuses,
+              },
+            },
+          },
+        });
+      }
+      if (orCondition.length > 0) {
+        where.OR = orCondition;
       }
     }
 

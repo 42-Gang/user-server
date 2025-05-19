@@ -25,14 +25,6 @@ export const searchUserQuerySchema = z.object({
           NONE: 'NONE',
         }),
       )
-      .superRefine((val, ctx) => {
-        if (val.includes('NONE') && 1 < val.length) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: '상태를 NONE으로 설정할 경우 다른 상태를 설정할 수 없습니다.',
-          });
-        }
-      })
       .optional(),
   ),
   exceptMe: z.preprocess((val) => {
