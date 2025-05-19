@@ -14,11 +14,9 @@ import UserRepositoryPrisma from '../../../../src/v1/storage/database/prisma/use
 import mockPrisma from '../../mocks/mockPrisma.js';
 import FriendRepositoryPrisma from '../../../../src/v1/storage/database/prisma/friend.repository.js';
 import FileService from '../../../../src/v1/apis/file/file.service.js';
+import { mockHttpClient } from '../../mocks/mockHttpClient.js';
 
-const mockFileService = {
-  getUrl: vi.fn().mockResolvedValue('https://example.com/avatar.png'),
-};
-
+let fileService: FileService;
 let userRepository: UserRepositoryInterface;
 let friendRepository: FriendRepositoryInterface;
 let friendsService: FriendsService;
@@ -26,8 +24,9 @@ let friendsService: FriendsService;
 beforeEach(() => {
   userRepository = new UserRepositoryPrisma(mockPrisma);
   friendRepository = new FriendRepositoryPrisma(mockPrisma);
+  fileService = new FileService(mockHttpClient, 'http://localhost:3000');
 
-  friendsService = new FriendsService(userRepository, friendRepository, mockFileService);
+  friendsService = new FriendsService(userRepository, friendRepository, fileService);
 });
 
 describe('친구 요청', () => {
@@ -239,6 +238,7 @@ describe('친구 목록 조회', () => {
         status: Status.ACCEPTED,
       },
     ]);
+    fileService.getUrl = vi.fn().mockResolvedValue('https://example.com/avatar.png');
 
     const result = await friendsService.getFriends(1, [Status.ACCEPTED]);
 
@@ -259,10 +259,11 @@ describe('친구 요청 목록 조회', () => {
         },
       },
     ]);
+    fileService.getUrl = vi.fn().mockResolvedValue('https://example.com/avatar.png');
 
     const result = await friendsService.getRequests(1);
     expect(result.status).toBe(STATUS.SUCCESS);
-    console.log(result.data?.requests)
+    console.log(result.data?.requests);
     expect(result.data?.requests).toEqual([
       {
         userId: 2,
