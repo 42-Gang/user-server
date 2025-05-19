@@ -13,6 +13,11 @@ import FriendRepositoryInterface from '../../../../src/v1/storage/database/inter
 import UserRepositoryPrisma from '../../../../src/v1/storage/database/prisma/user.repository.js';
 import mockPrisma from '../../mocks/mockPrisma.js';
 import FriendRepositoryPrisma from '../../../../src/v1/storage/database/prisma/friend.repository.js';
+import FileService from '../../../../src/v1/apis/file/file.service.js';
+
+const mockFileService = {
+  getUrl: vi.fn().mockResolvedValue('https://example.com/avatar.png'),
+};
 
 let userRepository: UserRepositoryInterface;
 let friendRepository: FriendRepositoryInterface;
@@ -22,7 +27,7 @@ beforeEach(() => {
   userRepository = new UserRepositoryPrisma(mockPrisma);
   friendRepository = new FriendRepositoryPrisma(mockPrisma);
 
-  friendsService = new FriendsService(userRepository, friendRepository);
+  friendsService = new FriendsService(userRepository, friendRepository, mockFileService);
 });
 
 describe('친구 요청', () => {
@@ -262,7 +267,7 @@ describe('친구 요청 목록 조회', () => {
       {
         userId: 2,
         nickname: 'friend2',
-        avatarUrl: 'url2',
+        avatarUrl: 'https://example.com/avatar.png',
       },
     ]);
   });
