@@ -2,7 +2,6 @@ import { GotClient } from '../../../plugins/http.client.js';
 import { HttpException } from '../../common/exceptions/core.error.js';
 import { MultipartFile } from '@fastify/multipart';
 import FormData from 'form-data';
-import got from 'got';
 
 export default class FileService {
   constructor(
@@ -23,7 +22,14 @@ export default class FileService {
       contentType: file.mimetype,
     });
 
-    const response = await got.post(`http://${this.fileServerUrl}/api/v1/file`, {
+    const response = await this.httpClient.requestForm<{
+      message: string;
+      data?: {
+        url: string;
+      };
+    }>({
+      method: 'POST',
+      url: `http://${this.fileServerUrl}/api/v1/file`,
       headers: {
         'x-internal': 'true',
         ...form.getHeaders(),
@@ -32,25 +38,18 @@ export default class FileService {
       throwHttpErrors: false,
     });
 
-    const parsed: {
-      message: string;
-      data?: {
-        url: string;
-      };
-    } = JSON.parse(response.body);
-
     if (response.statusCode !== 201) {
-      throw new HttpException(response.statusCode, parsed.message);
+      throw new HttpException(response.statusCode, response.body.message);
     }
-    if (!parsed.data) {
+    if (!response.body.data) {
       throw new HttpException(500, 'File upload failed');
     }
 
-    return parsed.data.url;
+    return response.body.data.url;
   }
 
   async getUrl(key: string): Promise<string> {
-    const response = await this.httpClient.request<{
+    const response = await this.httpClient.requestJson<{
       message: string;
       data: {
         url: string;
