@@ -70,7 +70,7 @@ export default class FriendTopicHandler implements KafkaTopicHandler {
 
     console.log(message);
     await this.joinFriendStatusRooms(this.statusNamespace, userAId.toString(), userBId.toString());
-    await this.emitFriendStatus(this.statusNamespace, userAId.toString(), userBId.toString());
+    await this.emitFriendStatus(this.statusNamespace, userAId, userBId);
   }
 
   async handleFriendBlockMessage(message: TypeOf<typeof friendMessage>) {
@@ -136,12 +136,16 @@ export default class FriendTopicHandler implements KafkaTopicHandler {
     });
   }
 
-  private async emitFriendStatus(namespace: Namespace, userAId: string, userBId: string) {
+  private async emitFriendStatus(namespace: Namespace, userAId: number, userBId: number) {
     await new Promise((r) => setTimeout(r, 50));
 
     for (const id of [userAId, userBId]) {
       const status = (await redis.get(`user:${id}:status`)) || 'OFFLINE';
-      namespace.to(`user-status-${id}`).emit('friend-status', { friendId: id, status });
+      namespace.to(`user-status-${id}`).emit('friend-status', {
+        friendId: id,
+        status,
+        timestamp: new Date().toISOString(),
+      });
     }
   }
 
