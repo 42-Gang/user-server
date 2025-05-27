@@ -39,6 +39,8 @@ export default class FriendRepositoryPrisma implements FriendRepositoryInterface
         userId: friend.friendId,
         friendId: friend.userId,
         status: friend.status,
+        createdAt: friend.createdAt,
+        updatedAt: friend.updatedAt,
       };
     });
   }
