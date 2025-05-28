@@ -2,8 +2,7 @@ import { Namespace, Socket } from 'socket.io';
 import { redis } from '../../../plugins/redis.js';
 import StatusService from './status.service.js';
 import { userStatus } from './status.schema.js';
-import { TypeOf } from 'zod';
-import { friendsSchema, friendType } from './friends.schema.js';
+import { friendType } from './friends.schema.js';
 import { sendStatus } from '../../kafka/producers/user-status.producer.js';
 
 export async function handleConnection(
@@ -36,15 +35,15 @@ export async function handleConnection(
 async function joinFriendStatusRooms(socket: Socket, friends: friendType) {
   for (const friend of friends) {
     if (friend.status === 'BLOCKED') continue;
-    socket.join(`user-status-${friend.id}`);
+    socket.join(`user-status-${friend.userId}`);
   }
 }
 
-async function emitFriendsStatus(friends: TypeOf<typeof friendsSchema>, socket: Socket) {
+async function emitFriendsStatus(friends: friendType, socket: Socket) {
   for (const friend of friends) {
-    const status = await redis.get(`user:${friend.id}:status`);
+    const status = await redis.get(`user:${friend.userId}:status`);
     socket.emit('friend-status', {
-      friendId: friend.id,
+      friendId: friend.userId,
       status: status || 'OFFLINE',
     });
   }
