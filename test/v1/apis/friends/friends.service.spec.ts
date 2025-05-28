@@ -262,6 +262,7 @@ describe('친구 목록 조회', () => {
 
 describe('친구 요청 목록 조회', () => {
   it('정상', async () => {
+    const date = new Date();
     friendRepository.findAllByFriendIdAndStatus = vi.fn().mockResolvedValue([
       {
         userId: 2,
@@ -269,6 +270,9 @@ describe('친구 요청 목록 조회', () => {
           nickname: 'friend2',
           avatarUrl: 'url2',
         },
+        status: Status.ACCEPTED,
+        createdAt: date,
+        updatedAt: date,
       },
     ]);
     fileService.getUrl = vi.fn().mockResolvedValue('https://example.com/avatar.png');
@@ -281,6 +285,7 @@ describe('친구 요청 목록 조회', () => {
         userId: 2,
         nickname: 'friend2',
         avatarUrl: 'https://example.com/avatar.png',
+        timestamp: date.toISOString(),
       },
     ]);
   });
