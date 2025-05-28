@@ -31,10 +31,12 @@ enum Status {
 }
 
 model Friend {
-  id       Int    @id @default(autoincrement())
-  status   Status @default(PENDING)
-  userId   Int    @map("user_id")
-  friendId Int    @map("friend_id")
+  id        Int      @id @default(autoincrement())
+  status    Status   @default(PENDING)
+  userId    Int      @map("user_id")
+  friendId  Int      @map("friend_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   user   User @relation("UserFriends", fields: [userId], references: [id])
   friend User @relation("FriendOfUser", fields: [friendId], references: [id])

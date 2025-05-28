@@ -10,17 +10,23 @@ import bcrypt from 'bcrypt';
 import UserRepositoryInterface from '../../../../src/v1/storage/database/interfaces/user.repository.interface.js';
 import UserRepositoryPrisma from '../../../../src/v1/storage/database/prisma/user.repository.js';
 import mockPrisma from '../../mocks/mockPrisma.js';
-import FileService from '../../../../src/v1/apis/file/file.service.js';
-import { gotClient } from '../../../../src/plugins/http.client.js';
 
 let userRepository: UserRepositoryInterface;
 let usersService: UsersService;
 
+let fileServiceMock: {
+  upload: ReturnType<typeof vi.fn>;
+  getUrl: ReturnType<typeof vi.fn>;
+};
+
 beforeEach(() => {
   userRepository = new UserRepositoryPrisma(mockPrisma);
-  const fileService = new FileService(gotClient, 'http://localhost:3000');
+  fileServiceMock = {
+    upload: vi.fn(),
+    getUrl: vi.fn(),
+  };
 
-  usersService = new UsersService(userRepository, bcrypt, fileService);
+  usersService = new UsersService(userRepository, bcrypt, fileServiceMock as unknown as any);
 });
 
 describe('회원가입', () => {
@@ -204,6 +210,7 @@ describe('내정보 확인', () => {
       avatarUrl: '/avatars/avatar.png',
     };
     userRepository.findById = vi.fn().mockResolvedValue(mockUser);
+    fileServiceMock.getUrl = vi.fn().mockReturnValue('http://localhost:3000' + mockUser.avatarUrl);
 
     const result = await usersService.getMyProfile(userId);
     expect(result).toEqual({

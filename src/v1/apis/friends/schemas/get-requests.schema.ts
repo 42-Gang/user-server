@@ -12,6 +12,7 @@ export const getRequestsResponseSchema = createResponseSchema(
         })
         .extend({
           userId: z.number(),
+          timestamp: z.string().datetime(),
         }),
     ),
   }),

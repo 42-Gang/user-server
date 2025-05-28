@@ -1,8 +1,13 @@
-import { z } from 'zod';
+import { TypeOf, z } from 'zod';
 import { Status } from '@prisma/client';
 
+export type friendType = TypeOf<typeof friendsSchema>;
+
 export const friendSchema = z.object({
+  id: z.number(),
+  userId: z.number(),
   friendId: z.number(),
+  status: z.nativeEnum(Status),
 });
 
 export const friendsSchema = z.array(friendSchema);

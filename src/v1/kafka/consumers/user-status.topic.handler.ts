@@ -21,7 +21,7 @@ export default class UserStatusTopicHandler implements KafkaTopicHandler {
   }
 
   async handleUserStatusMessage(message: TypeOf<typeof userStatusMessage>) {
-    const { userId, status, timestamp } = message;
+    const { userId, status, timestamp } = userStatusMessage.parse(message);
 
     const current = await redis.get(`user:${userId}:status_timestamp`);
     if (current && new Date(current).getTime() > new Date(timestamp).getTime()) {
@@ -33,6 +33,7 @@ export default class UserStatusTopicHandler implements KafkaTopicHandler {
     this.statusNamespace.to(`user-status-${userId}`).emit('friend-status', {
       friendId: userId,
       status,
+      timestamp,
     });
   }
 }

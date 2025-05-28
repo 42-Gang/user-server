@@ -11,7 +11,7 @@ export async function startConsumer(
   authTopicHandler: AuthTopicHandler,
   imageTopicHandler: ImageTopicHandler,
 ) {
-  const consumer = kafka.consumer({ groupId: 'STATUS', sessionTimeout: 10000 });
+  const consumer = kafka.consumer({ groupId: 'USER_SERVER', sessionTimeout: 10000 });
   const handlers: KafkaTopicHandler[] = [
     friendTopicHandler,
     userStatusTopicHandler,
