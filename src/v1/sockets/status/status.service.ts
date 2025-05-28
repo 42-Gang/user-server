@@ -1,4 +1,4 @@
-import { friendsSchema, statusSchema } from './friends.schema.js';
+import { statusSchema } from './friends.schema.js';
 import { TypeOf } from 'zod';
 import FriendRepositoryInterface from '../../storage/database/interfaces/friend.repository.interface.js';
 import { NotFoundException } from '../../common/exceptions/core.error.js';
@@ -9,15 +9,8 @@ export default class StatusService {
     private readonly friendRepository: FriendRepositoryInterface,
   ) {}
 
-  async fetchFriends(userId: number): Promise<TypeOf<typeof friendsSchema>> {
-    // const cachedFriends = await this.friendCacheRepository.getFriends(userId);
-    // if (cachedFriends?.length) return cachedFriends;
-
-    const friends = await this.friendRepository.findAllByUserIdAndNotBlocked(userId);
-
-    friendsSchema.parse(friends);
-    // await this.friendCacheRepository.addFriends(userId, friends);
-    return friends;
+  async fetchFriends(userId: number) {
+    return await this.friendRepository.findAllByUserIdAndNotBlocked(userId);
   }
 
   async fetchFriendStatus({

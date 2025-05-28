@@ -3,7 +3,7 @@ import { redis } from '../../../plugins/redis.js';
 import StatusService from './status.service.js';
 import { userStatus } from './status.schema.js';
 import { TypeOf } from 'zod';
-import { friendsSchema } from './friends.schema.js';
+import { friendsSchema, friendType } from './friends.schema.js';
 import { sendStatus } from '../../kafka/producers/user-status.producer.js';
 
 export async function handleConnection(
@@ -19,7 +19,7 @@ export async function handleConnection(
     redis.set(`user:${userId}:status`, userStatus.ONLINE);
 
     const friends = await statusService.fetchFriends(userId);
-    await joinFriendStatusRooms(socket, friends, statusService);
+    await joinFriendStatusRooms(socket, friends);
     await emitFriendsStatus(friends, socket);
 
     await sendStatus(userId, userStatus.ONLINE);
@@ -33,26 +33,18 @@ export async function handleConnection(
   }
 }
 
-async function joinFriendStatusRooms(
-  socket: Socket,
-  friends: TypeOf<typeof friendsSchema>,
-  statusService: StatusService,
-) {
+async function joinFriendStatusRooms(socket: Socket, friends: friendType) {
   for (const friend of friends) {
-    const friendStatus = await statusService.fetchFriendStatus({
-      userId: friend.friendId,
-      friendId: socket.data.userId,
-    });
-    if (friendStatus.status === 'BLOCKED') continue;
-    socket.join(`user-status-${friend.friendId}`);
+    if (friend.status === 'BLOCKED') continue;
+    socket.join(`user-status-${friend.id}`);
   }
 }
 
 async function emitFriendsStatus(friends: TypeOf<typeof friendsSchema>, socket: Socket) {
   for (const friend of friends) {
-    const status = await redis.get(`user:${friend.friendId}:status`);
+    const status = await redis.get(`user:${friend.id}:status`);
     socket.emit('friend-status', {
-      friendId: friend.friendId,
+      friendId: friend.id,
       status: status || 'OFFLINE',
     });
   }
