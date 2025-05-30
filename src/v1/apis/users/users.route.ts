@@ -21,6 +21,8 @@ import { coreResponseSchema } from '../../common/schema/core.schema.js';
 import { checkDuplicatedEmailParamsSchema } from './schemas/check-duplicated-email.schema.js';
 import { getProfileResponseSchema } from './schemas/get-profile.schema.js';
 import { uploadAvatarResponseSchema } from './schemas/upload-avatar.schema.js';
+import { oauthUserExistsInputSchema, oauthUserExistsResponseSchema } from './schemas/check-oauth-user-existence.schema.js';
+import { createOauthUserInputSchema, createOauthUserResponseSchema } from './schemas/oauth-create-user.schema.js';
 
 export default async function usersRoutes(fastify: FastifyInstance) {
   const usersController: UsersController = fastify.diContainer.resolve('usersController');
@@ -164,6 +166,38 @@ export default async function usersRoutes(fastify: FastifyInstance) {
           description: '아바타 삭제',
           response: {
             200: coreResponseSchema,
+          },
+        },
+        auth: true,
+      },
+    },
+    {
+      method: 'POST',
+      url: '/oauth',
+      handler: usersController.createOAuthUser,
+      options: {
+        schema: {
+          tags: ['users'],
+          description: 'OAuth 유저 생성',
+          body: createOauthUserInputSchema,
+          response: {
+            201: createOauthUserResponseSchema,
+          },
+        },
+        auth: true,
+      },
+    },
+    {
+      method: 'POST',
+      url: '/oauth/existence',
+      handler: usersController.checkOAuthUserExistence,
+      options: {
+        schema: {
+          tags: ['users'],
+          description: 'OAuth 메일 중복 여부 확인',
+          body: oauthUserExistsInputSchema,
+          response: {
+            201: oauthUserExistsResponseSchema,
           },
         },
         auth: true,

@@ -9,6 +9,8 @@ import { authenticateUserInputSchema } from './schemas/authenticate-user.schema.
 import { checkDuplicatedEmailParamsSchema } from './schemas/check-duplicated-email.schema.js';
 import { STATUS } from '../../common/constants/status.js';
 import { BadRequestException } from '../../common/exceptions/core.error.js';
+import { createOauthUserInputSchema } from './schemas/oauth-create-user.schema.js';
+import { oauthUserExistsInputSchema } from './schemas/check-oauth-user-existence.schema.js';
 
 export default class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -79,4 +81,16 @@ export default class UsersController {
     const result = await this.usersService.deleteAvatarImage(request.userId);
     reply.status(200).send(result);
   };
+
+  createOAuthUser = async (request: FastifyRequest, reply: FastifyReply) => {
+    const body = createOauthUserInputSchema.parse(request.body);
+    const result = await this.usersService.createOAuthUser(body.email, body.nickname);
+    reply.status(201).send(result);
+  }
+
+  checkOAuthUserExistence = async (request: FastifyRequest, reply: FastifyReply) => {
+    const body = oauthUserExistsInputSchema.parse(request.body);
+    const result = await this.usersService.checkOAuthUserExistence(body.email);
+    reply.status(200).send(result);
+  }
 }

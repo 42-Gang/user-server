@@ -28,6 +28,8 @@ import { uploadAvatarResponseSchema } from './schemas/upload-avatar.schema.js';
 import { v4 as uuidv4 } from 'uuid';
 import * as path from 'node:path';
 import { deleteAvatarResponseSchema } from './schemas/delete-avatar.schema.js';
+import { createOauthUserResponseSchema } from './schemas/oauth-create-user.schema.js';
+import { oauthUserExistsResponseSchema } from './schemas/check-oauth-user-existence.schema.js';
 
 const avatarDefaultUrl = 'avatars-default.png';
 export default class UsersService {
@@ -238,4 +240,55 @@ export default class UsersService {
       avatarUrl,
     };
   }
+
+  async createOAuthUser(email: string, nickname: string): Promise<TypeOf<typeof createOauthUserResponseSchema>> {
+    let userWithSameNickname = await this.userRepository.findByNickname(nickname);
+    while (userWithSameNickname) {
+      const randomSuffix = Math.floor(Math.random() * 1000 + 1);
+      const newNickname = `${nickname}${randomSuffix}`;
+      userWithSameNickname = await this.userRepository.findByNickname(newNickname);
+      if (!userWithSameNickname) {
+        nickname = newNickname;
+      }
+    }
+
+    const user = await this.userRepository.create({
+      nickname: nickname,
+      email: email,
+      passwordHash: null,
+      avatarUrl: avatarDefaultUrl,
+    });
+
+    return {
+      status: STATUS.SUCCESS,
+      message: '성공적으로 유저가 생성되었습니다.',
+      data: {
+        userId: user.id
+      },
+    };
+  }
+
+  async checkOAuthUserExistence(email: string): Promise<TypeOf<typeof oauthUserExistsResponseSchema>> {
+    
+    const user = await this.userRepository.findByEmail(email);
+    if (user) {
+      return {
+        status: STATUS.SUCCESS,
+        message: '사용자가 존재합니다.',
+        data: {
+          exists: true,
+          userId: user.id,
+        },
+      };
+    }
+
+    return {
+      status: STATUS.SUCCESS,
+      message: '사용자가 존재하지 않습니다.',
+      data: {
+        exists: false,
+      },
+    };
+  }
+  
 }
