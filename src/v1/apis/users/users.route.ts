@@ -203,7 +203,7 @@ export default async function usersRoutes(fastify: FastifyInstance) {
           description: 'OAuth 메일 중복 여부 확인',
           body: oauthUserExistsInputSchema,
           response: {
-            201: oauthUserExistsResponseSchema,
+            200: oauthUserExistsResponseSchema,
           },
         },
         auth: false,
