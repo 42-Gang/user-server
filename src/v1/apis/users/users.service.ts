@@ -247,7 +247,7 @@ export default class UsersService {
   ): Promise<TypeOf<typeof createOauthUserResponseSchema>> {
     let userWithSameNickname = await this.userRepository.findByNickname(nickname);
     while (userWithSameNickname) {
-      const randomSuffix = Math.floor(Math.random() * 1000 + 1);
+      const randomSuffix = Math.floor(Math.random() * 100000 + 1);
       const newNickname = `${nickname}${randomSuffix}`;
       userWithSameNickname = await this.userRepository.findByNickname(newNickname);
       if (!userWithSameNickname) {
