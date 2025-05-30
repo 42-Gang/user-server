@@ -21,8 +21,14 @@ import { coreResponseSchema } from '../../common/schema/core.schema.js';
 import { checkDuplicatedEmailParamsSchema } from './schemas/check-duplicated-email.schema.js';
 import { getProfileResponseSchema } from './schemas/get-profile.schema.js';
 import { uploadAvatarResponseSchema } from './schemas/upload-avatar.schema.js';
-import { oauthUserExistsInputSchema, oauthUserExistsResponseSchema } from './schemas/check-oauth-user-existence.schema.js';
-import { createOauthUserInputSchema, createOauthUserResponseSchema } from './schemas/oauth-create-user.schema.js';
+import {
+  oauthUserExistsInputSchema,
+  oauthUserExistsResponseSchema,
+} from './schemas/check-oauth-user-existence.schema.js';
+import {
+  createOauthUserInputSchema,
+  createOauthUserResponseSchema,
+} from './schemas/oauth-create-user.schema.js';
 
 export default async function usersRoutes(fastify: FastifyInstance) {
   const usersController: UsersController = fastify.diContainer.resolve('usersController');
@@ -184,7 +190,7 @@ export default async function usersRoutes(fastify: FastifyInstance) {
             201: createOauthUserResponseSchema,
           },
         },
-        auth: true,
+        auth: false,
       },
     },
     {
@@ -200,7 +206,7 @@ export default async function usersRoutes(fastify: FastifyInstance) {
             201: oauthUserExistsResponseSchema,
           },
         },
-        auth: true,
+        auth: false,
       },
     },
   ];

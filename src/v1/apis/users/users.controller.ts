@@ -86,11 +86,11 @@ export default class UsersController {
     const body = createOauthUserInputSchema.parse(request.body);
     const result = await this.usersService.createOAuthUser(body.email, body.nickname);
     reply.status(201).send(result);
-  }
+  };
 
   checkOAuthUserExistence = async (request: FastifyRequest, reply: FastifyReply) => {
     const body = oauthUserExistsInputSchema.parse(request.body);
     const result = await this.usersService.checkOAuthUserExistence(body.email);
     reply.status(200).send(result);
-  }
+  };
 }

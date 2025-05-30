@@ -241,7 +241,10 @@ export default class UsersService {
     };
   }
 
-  async createOAuthUser(email: string, nickname: string): Promise<TypeOf<typeof createOauthUserResponseSchema>> {
+  async createOAuthUser(
+    email: string,
+    nickname: string,
+  ): Promise<TypeOf<typeof createOauthUserResponseSchema>> {
     let userWithSameNickname = await this.userRepository.findByNickname(nickname);
     while (userWithSameNickname) {
       const randomSuffix = Math.floor(Math.random() * 1000 + 1);
@@ -263,13 +266,14 @@ export default class UsersService {
       status: STATUS.SUCCESS,
       message: '성공적으로 유저가 생성되었습니다.',
       data: {
-        userId: user.id
+        userId: user.id,
       },
     };
   }
 
-  async checkOAuthUserExistence(email: string): Promise<TypeOf<typeof oauthUserExistsResponseSchema>> {
-    
+  async checkOAuthUserExistence(
+    email: string,
+  ): Promise<TypeOf<typeof oauthUserExistsResponseSchema>> {
     const user = await this.userRepository.findByEmail(email);
     if (user) {
       return {
@@ -290,5 +294,4 @@ export default class UsersService {
       },
     };
   }
-  
 }

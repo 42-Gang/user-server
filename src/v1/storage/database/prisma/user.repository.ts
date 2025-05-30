@@ -55,7 +55,7 @@ export default class UserRepositoryPrisma implements UserRepositoryInterface {
             },
           },
         });
-      } 
+      }
       if (statuses && statuses.length > 0) {
         orCondition.push({
           friendOf: {
