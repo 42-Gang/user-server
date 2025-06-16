@@ -245,9 +245,21 @@ export default class UsersService {
     email: string,
     nickname: string,
   ): Promise<TypeOf<typeof createOauthUserResponseSchema>> {
+    const ALPHABETS = 'abcdefghijklmnopqrstuvwxyz';
+    const MAX_LENGTH = 8;
+  
+    if (nickname.length > MAX_LENGTH) {
+      nickname = nickname.slice(0, MAX_LENGTH);
+    }
+
+    let suffixLength = 0;
     let userWithSameNickname = await this.userRepository.findByNickname(nickname);
     while (userWithSameNickname) {
-      const randomSuffix = Math.floor(Math.random() * 100000 + 1);
+      suffixLength += 1;
+      const randomSuffix = Array.from({ length: suffixLength }, () =>
+        ALPHABETS[Math.floor(Math.random() * ALPHABETS.length)]
+      ).join('');
+      nickname = nickname.slice(0, MAX_LENGTH - suffixLength);
       const newNickname = `${nickname}${randomSuffix}`;
       userWithSameNickname = await this.userRepository.findByNickname(newNickname);
       if (!userWithSameNickname) {
