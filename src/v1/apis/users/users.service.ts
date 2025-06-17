@@ -241,7 +241,7 @@ export default class UsersService {
     };
   }
 
-  private async generateRandomSuffix(length: number): Promise<string> {
+  private generateRandomSuffix(length: number): string {
     const ALPHABETS = 'abcdefghijklmnopqrstuvwxyz';
     return Array.from(
       { length },
@@ -262,7 +262,7 @@ export default class UsersService {
     while (await this.userRepository.findByNickname(finalNickname)) {
       suffixLength += 1;
 
-      const randomSuffix = await this.generateRandomSuffix(suffixLength);
+      const randomSuffix = this.generateRandomSuffix(suffixLength);
       baseNickname = nickname.slice(0, MAX_LENGTH - suffixLength);
       finalNickname = `${baseNickname}${randomSuffix}`;
     }
