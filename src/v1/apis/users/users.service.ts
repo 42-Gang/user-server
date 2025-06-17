@@ -254,17 +254,26 @@ export default class UsersService {
     nickname: string,
   ): Promise<TypeOf<typeof createOauthUserResponseSchema>> {
     const MAX_LENGTH = 8;
+    const MAX_ATTEMPTS = 10;
 
     let baseNickname = nickname.slice(0, MAX_LENGTH);
     let finalNickname = baseNickname;
 
-    let suffixLength = 0;
-    while (await this.userRepository.findByNickname(finalNickname)) {
+    let suffixLength = 0; 
+    let attempts = 0;
+    while (attempts < MAX_ATTEMPTS && await this.userRepository.findByNickname(finalNickname)) {
       suffixLength += 1;
+      attempts += 1;
 
       const randomSuffix = this.generateRandomSuffix(suffixLength);
       baseNickname = nickname.slice(0, Math.max(0, MAX_LENGTH - suffixLength));
       finalNickname = `${baseNickname}${randomSuffix}`;
+    }
+
+    if (attempts >= MAX_ATTEMPTS && await this.userRepository.findByNickname(finalNickname)) {
+      throw new ConflictException(
+        `고유 닉네임 생성에 실패하였습니다.`
+      );
     }
 
     nickname = finalNickname;
