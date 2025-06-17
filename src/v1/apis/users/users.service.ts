@@ -263,7 +263,7 @@ export default class UsersService {
       suffixLength += 1;
 
       const randomSuffix = this.generateRandomSuffix(suffixLength);
-      baseNickname = nickname.slice(0, MAX_LENGTH - suffixLength);
+      baseNickname = nickname.slice(0, Math.max(0, MAX_LENGTH - suffixLength));
       finalNickname = `${baseNickname}${randomSuffix}`;
     }
 
