@@ -241,31 +241,33 @@ export default class UsersService {
     };
   }
 
+  private async generateRandomSuffix(length: number): Promise<string> {
+    const ALPHABETS = 'abcdefghijklmnopqrstuvwxyz';
+    return Array.from(
+      { length },
+      () => ALPHABETS[Math.floor(Math.random() * ALPHABETS.length)],
+    ).join('');
+  }
+
   async createOAuthUser(
     email: string,
     nickname: string,
   ): Promise<TypeOf<typeof createOauthUserResponseSchema>> {
-    const ALPHABETS = 'abcdefghijklmnopqrstuvwxyz';
     const MAX_LENGTH = 8;
-  
-    if (nickname.length > MAX_LENGTH) {
-      nickname = nickname.slice(0, MAX_LENGTH);
-    }
+
+    let baseNickname = nickname.slice(0, MAX_LENGTH);
+    let finalNickname = baseNickname;
 
     let suffixLength = 0;
-    let userWithSameNickname = await this.userRepository.findByNickname(nickname);
-    while (userWithSameNickname) {
+    while (await this.userRepository.findByNickname(finalNickname)) {
       suffixLength += 1;
-      const randomSuffix = Array.from({ length: suffixLength }, () =>
-        ALPHABETS[Math.floor(Math.random() * ALPHABETS.length)]
-      ).join('');
-      nickname = nickname.slice(0, MAX_LENGTH - suffixLength);
-      const newNickname = `${nickname}${randomSuffix}`;
-      userWithSameNickname = await this.userRepository.findByNickname(newNickname);
-      if (!userWithSameNickname) {
-        nickname = newNickname;
-      }
+
+      const randomSuffix = await this.generateRandomSuffix(suffixLength);
+      baseNickname = nickname.slice(0, MAX_LENGTH - suffixLength);
+      finalNickname = `${baseNickname}${randomSuffix}`;
     }
+
+    nickname = finalNickname;
 
     const user = await this.userRepository.create({
       nickname: nickname,
