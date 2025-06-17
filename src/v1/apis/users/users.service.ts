@@ -251,17 +251,14 @@ export default class UsersService {
 
   private async generateUniqueNickname(base: string): Promise<string> {
     const MAX_LENGTH = 8;
-    const  MAX_ATTEMPTS = 10;
+    const MAX_ATTEMPTS = 10;
     let baseNickname = base.slice(0, MAX_LENGTH);
     let finalNickname = baseNickname;
 
     let suffixLength = 0;
     let attempts = 0;
 
-    while (
-      attempts < MAX_ATTEMPTS &&
-      await this.userRepository.findByNickname(finalNickname)
-    ) {
+    while (attempts < MAX_ATTEMPTS && (await this.userRepository.findByNickname(finalNickname))) {
       suffixLength += 1;
       attempts += 1;
 
@@ -270,16 +267,12 @@ export default class UsersService {
       finalNickname = `${baseNickname}${randomSuffix}`;
     }
 
-    if (
-      attempts >= MAX_ATTEMPTS &&
-      await this.userRepository.findByNickname(finalNickname)
-    ) {
+    if (attempts >= MAX_ATTEMPTS && (await this.userRepository.findByNickname(finalNickname))) {
       throw new ConflictException('고유 닉네임 생성에 실패하였습니다.');
     }
 
     return finalNickname;
   }
-
 
   async createOAuthUser(
     email: string,
@@ -301,8 +294,7 @@ export default class UsersService {
         userId: user.id,
       },
     };
-}
-
+  }
 
   async checkOAuthUserExistence(
     email: string,
