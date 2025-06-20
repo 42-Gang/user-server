@@ -258,18 +258,17 @@ export default class UsersService {
     let suffixLength = 0;
     let attempts = 0;
 
-    for (let i = 0; i < MAX_LENGTH; i += 1) {
+    for (let i = 0; i <= MAX_LENGTH; i += 1) {
       if (!await this.userRepository.findByNickname(finalNickname)) {
         return finalNickname
+      }
+      if (attempts == MAX_ATTEMPTS) {
+        throw new ConflictException('고유 닉네임 생성에 실패하였습니다.');
       }
       suffixLength += 1;
       const randomSuffix = this.generateRandomSuffix(suffixLength);
       baseNickname = base.slice(0, Math.max(0, MAX_LENGTH - suffixLength));
       finalNickname = `${baseNickname}${randomSuffix}`;
-    }
-
-    if (attempts >= MAX_ATTEMPTS && (await this.userRepository.findByNickname(finalNickname))) {
-      throw new ConflictException('고유 닉네임 생성에 실패하였습니다.');
     }
 
     return finalNickname;
