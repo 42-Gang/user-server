@@ -242,7 +242,7 @@ export default class UsersService {
   }
 
   private generateRandomSuffix(length: number): string {
-    const ALPHABETS = 'abcdefghijklmnopqrstuvwxyz';
+    const ALPHABETS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     return Array.from(
       { length },
       () => ALPHABETS[Math.floor(Math.random() * ALPHABETS.length)],
@@ -258,10 +258,11 @@ export default class UsersService {
     let suffixLength = 0;
     let attempts = 0;
 
-    while (attempts < MAX_ATTEMPTS && (await this.userRepository.findByNickname(finalNickname))) {
+    for (let i = 0; i < MAX_LENGTH; i += 1) {
+      if (!await this.userRepository.findByNickname(finalNickname)) {
+        return finalNickname
+      }
       suffixLength += 1;
-      attempts += 1;
-
       const randomSuffix = this.generateRandomSuffix(suffixLength);
       baseNickname = base.slice(0, Math.max(0, MAX_LENGTH - suffixLength));
       finalNickname = `${baseNickname}${randomSuffix}`;
