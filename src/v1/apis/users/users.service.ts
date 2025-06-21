@@ -243,10 +243,12 @@ export default class UsersService {
 
   private generateRandomSuffix(length: number): string {
     const ALPHABETS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    return Array.from(
-      { length },
-      () => ALPHABETS[Math.floor(Math.random() * ALPHABETS.length)],
-    ).join('');
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * ALPHABETS.length);
+      result += ALPHABETS[randomIndex];
+    }
+    return result;
   }
 
   private async generateUniqueNickname(base: string): Promise<string> {
