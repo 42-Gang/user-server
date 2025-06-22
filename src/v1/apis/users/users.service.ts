@@ -241,22 +241,49 @@ export default class UsersService {
     };
   }
 
+  private generateRandomSuffix(length: number): string {
+    const ALPHABETS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * ALPHABETS.length);
+      result += ALPHABETS[randomIndex];
+    }
+    return result;
+  }
+
+  private async generateUniqueNickname(base: string): Promise<string> {
+    const MAX_LENGTH = 8;
+    const MAX_ATTEMPTS = 10;
+    let baseNickname = base.slice(0, MAX_LENGTH);
+    let finalNickname = baseNickname;
+
+    let suffixLength = 0;
+    let attempts = 0;
+
+    for (let i = 0; i <= MAX_LENGTH; i += 1) {
+      if (!await this.userRepository.findByNickname(finalNickname)) {
+        return finalNickname
+      }
+      if (attempts == MAX_ATTEMPTS) {
+        throw new ConflictException('고유 닉네임 생성에 실패하였습니다.');
+      }
+      suffixLength += 1;
+      const randomSuffix = this.generateRandomSuffix(suffixLength);
+      baseNickname = base.slice(0, Math.max(0, MAX_LENGTH - suffixLength));
+      finalNickname = `${baseNickname}${randomSuffix}`;
+    }
+
+    return finalNickname;
+  }
+
   async createOAuthUser(
     email: string,
     nickname: string,
   ): Promise<TypeOf<typeof createOauthUserResponseSchema>> {
-    let userWithSameNickname = await this.userRepository.findByNickname(nickname);
-    while (userWithSameNickname) {
-      const randomSuffix = Math.floor(Math.random() * 100000 + 1);
-      const newNickname = `${nickname}${randomSuffix}`;
-      userWithSameNickname = await this.userRepository.findByNickname(newNickname);
-      if (!userWithSameNickname) {
-        nickname = newNickname;
-      }
-    }
+    const finalNickname = await this.generateUniqueNickname(nickname);
 
     const user = await this.userRepository.create({
-      nickname: nickname,
+      nickname: finalNickname,
       email: email,
       passwordHash: null,
       avatarUrl: avatarDefaultUrl,
