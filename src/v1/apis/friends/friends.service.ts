@@ -191,7 +191,7 @@ export default class FriendsService {
         userId: request.userId,
         nickname: request.user.nickname,
         avatarUrl: await this.fileService.getUrl(request.user.avatarUrl),
-        timestamp: request.createdAt.toISOString(),
+        timestamp: request.user.createdAt.toISOString(),
       })),
     );
 
