@@ -41,8 +41,7 @@ async function joinFriendStatusRooms(socket: Socket, friends: friendType) {
 
 async function emitFriendsStatus(friends: friendType, socket: Socket) {
   for (const friend of friends) {
-    let status = await redis.get(`user:${friend.userId}:status`);
-    if (friend.status === 'BLOCKED') status = 'OFFLINE';
+  let status = friend.status === 'BLOCKED' ? 'OFFLINE' : await redis.get(`user:${friend.userId}:status`);
     socket.emit('friend-status', {
       friendId: friend.userId,
       status: status || 'OFFLINE',
