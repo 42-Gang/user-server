@@ -42,14 +42,13 @@ async function joinFriendStatusRooms(socket: Socket, friends: friendType) {
 async function emitFriendsStatus(friends: friendType, socket: Socket) {
   await Promise.all(
     friends.map(async (friend) => {
-      const status = friend.status === 'BLOCKED'
-        ? 'OFFLINE'
-        : await redis.get(`user:${friend.userId}:status`);
+      const status =
+        friend.status === 'BLOCKED' ? 'OFFLINE' : await redis.get(`user:${friend.userId}:status`);
 
       socket.emit('friend-status', {
         friendId: friend.userId,
         status: status || 'OFFLINE',
       });
-    })
-  )
+    }),
+  );
 }
