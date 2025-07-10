@@ -10,7 +10,7 @@ export default class StatusService {
   ) {}
 
   async fetchFriends(userId: number) {
-    return await this.friendRepository.findAllByUserIdAndNotBlocked(userId);
+    return await this.friendRepository.findAllByUserIdAsFriend(userId);
   }
 
   async fetchFriendStatus({

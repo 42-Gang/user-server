@@ -261,8 +261,8 @@ export default class UsersService {
     let attempts = 0;
 
     for (let i = 0; i <= MAX_LENGTH; i += 1) {
-      if (!await this.userRepository.findByNickname(finalNickname)) {
-        return finalNickname
+      if (!(await this.userRepository.findByNickname(finalNickname))) {
+        return finalNickname;
       }
       if (attempts == MAX_ATTEMPTS) {
         throw new ConflictException('고유 닉네임 생성에 실패하였습니다.');
