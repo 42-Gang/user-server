@@ -21,7 +21,8 @@ RUN corepack enable \
 
 # package.json, lockfile 복사 후 devDependencies 포함 설치
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --prod --frozen-lockfile
+COPY --from=builder /app/node_modules ./node_modules
+RUN pnpm prune --prod
 
 # 빌드 결과와 Prisma Client 복사
 COPY --from=builder /app/dist ./dist
