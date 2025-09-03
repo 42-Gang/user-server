@@ -1,4 +1,4 @@
-import { exceptedSensitiveFields, userSchema } from './users.schema.js';
+import { safeUserSchema, userSchema } from './users.schema.js';
 import { createResponseSchema } from '../../../common/schema/core.schema.js';
 import { z } from 'zod';
 import { Status } from '@prisma/client';
@@ -35,7 +35,7 @@ export const searchUserQuerySchema = z.object({
   }, z.boolean().optional()),
 });
 
-export const searchUserResponseFields = exceptedSensitiveFields.omit({
+export const searchUserResponseFields = safeUserSchema.omit({
   createdAt: true,
   updatedAt: true,
   email: true,

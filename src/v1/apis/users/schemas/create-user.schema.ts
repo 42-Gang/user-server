@@ -1,4 +1,4 @@
-import { exceptedSensitiveFields, userSchema } from './users.schema.js';
+import { safeUserSchema, userSchema } from './users.schema.js';
 import { createResponseSchema } from '../../../common/schema/core.schema.js';
 import { z } from 'zod';
 
@@ -20,4 +20,4 @@ export const createUserInputSchema = userSchema
     password: passwordSchema,
   });
 
-export const createUserResponseSchema = createResponseSchema(exceptedSensitiveFields);
+export const createUserResponseSchema = createResponseSchema(safeUserSchema);

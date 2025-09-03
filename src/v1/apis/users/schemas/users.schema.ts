@@ -11,7 +11,7 @@ export const userSchema = z.object({
   updatedAt: z.date(),
 });
 
-export const exceptedSensitiveFields = userSchema.omit({
+export const safeUserSchema = userSchema.omit({
   passwordHash: true,
   twoFactorAuth: true,
 });
