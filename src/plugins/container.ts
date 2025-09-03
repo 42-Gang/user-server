@@ -23,6 +23,8 @@ export async function setDiContainer(server: FastifyInstance) {
 
   diContainer.register({
     fileServerUrl: asValue(process.env.FILE_SERVER_URL),
+    gameServerUrl: asValue(process.env.GAME_SERVER_URL),
+    userServerUrl: asValue(process.env.USER_SERVER_URL),
   });
 
   const NODE_EXTENSION = process.env.NODE_ENV == 'dev' ? 'ts' : 'js';
@@ -31,6 +33,7 @@ export async function setDiContainer(server: FastifyInstance) {
       `./**/src/**/*.repository.${NODE_EXTENSION}`,
       `./**/src/**/*.controller.${NODE_EXTENSION}`,
       `./**/src/**/*.service.${NODE_EXTENSION}`,
+      `./**/src/**/*.service.client.${NODE_EXTENSION}`,
     ],
     {
       esModules: true,
