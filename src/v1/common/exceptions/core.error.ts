@@ -55,3 +55,9 @@ export class NotImplementedException extends HttpException {
     super(501, message || '기능 미구현');
   }
 }
+
+export class ServiceUnavailableException extends HttpException {
+  constructor(message: string) {
+    super(503, message || '서비스 이용 불가');
+  }
+}

@@ -1,5 +1,6 @@
 import { GotClient } from '../../plugins/http.client.js';
 import { z } from 'zod';
+import { ServiceUnavailableException } from '../common/exceptions/core.error.js';
 
 enum GameMode {
   DUEL = 'DUEL',
@@ -92,7 +93,7 @@ export default class GameServiceClient {
     const response = await this.getStats(userId, GameMode.DUEL);
 
     if (response.statusCode !== 200) {
-      throw new Error(`Failed to fetch duel stats: ${response.statusCode}`);
+      throw new ServiceUnavailableException(`Failed to fetch duel stats: ${response.statusCode}`);
     }
 
     return ZDuelData.parse(response.body.data);
@@ -102,7 +103,9 @@ export default class GameServiceClient {
     const response = await this.getStats(userId, GameMode.TOURNAMENT);
 
     if (response.statusCode !== 200) {
-      throw new Error(`Failed to fetch duel stats: ${response.statusCode}`);
+      throw new ServiceUnavailableException(
+        `Failed to fetch tournament stats: ${response.statusCode}`,
+      );
     }
 
     return ZTournamentData.parse(response.body.data);
