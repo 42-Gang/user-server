@@ -30,6 +30,7 @@ import * as path from 'node:path';
 import { deleteAvatarResponseSchema } from './schemas/delete-avatar.schema.js';
 import { createOauthUserResponseSchema } from './schemas/oauth-create-user.schema.js';
 import { oauthUserExistsResponseSchema } from './schemas/check-oauth-user-existence.schema.js';
+import GameServiceClient from '../../clients/game.service.client.js';
 
 const avatarDefaultUrl = 'avatars-default.png';
 export default class UsersService {
@@ -37,6 +38,7 @@ export default class UsersService {
     private readonly userRepository: UserRepositoryInterface,
     private readonly crypt: typeof bcrypt,
     private readonly fileService: FileService,
+    private readonly gameServiceClient: GameServiceClient,
   ) {}
 
   async createUser(
@@ -93,9 +95,17 @@ export default class UsersService {
   async getUser(id: number): Promise<TypeOf<typeof getUserResponseSchema>> {
     const user = await this.getProfileData(id);
 
+    const duelStats = await this.gameServiceClient.getDuelStats(id);
+    const tournamentStats = await this.gameServiceClient.getTournamentStats(id);
+
     return {
       status: STATUS.SUCCESS,
-      data: { ...user, win: 0, lose: 0, tournament: 0 },
+      data: {
+        ...user,
+        win: duelStats.summary.wins,
+        lose: duelStats.summary.losses,
+        tournament: tournamentStats.summary.wins,
+      },
     };
   }
 
