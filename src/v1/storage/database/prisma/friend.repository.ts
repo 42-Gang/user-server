@@ -79,4 +79,15 @@ export default class FriendRepositoryPrisma implements FriendRepositoryInterface
   findAllByUserId(userId: number): Promise<Friend[]> {
     return this.prisma.friend.findMany({ where: { userId } });
   }
+
+  async findAllByUserIdAsFriend(userId: number): Promise<Friend[]> {
+    return this.prisma.friend.findMany({
+      where: {
+        friendId: userId,
+        status: {
+          in: [Status.ACCEPTED, Status.BLOCKED],
+        },
+      },
+    });
+  }
 }
