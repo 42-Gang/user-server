@@ -95,7 +95,7 @@ export default class UsersService {
 
     return {
       status: STATUS.SUCCESS,
-      data: user,
+      data: { ...user, win: 0, lose: 0, tournament: 0 },
     };
   }
 
