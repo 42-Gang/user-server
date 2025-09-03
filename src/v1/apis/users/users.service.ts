@@ -95,8 +95,10 @@ export default class UsersService {
   async getUser(id: number): Promise<TypeOf<typeof getUserResponseSchema>> {
     const user = await this.getProfileData(id);
 
-    const duelStats = await this.gameServiceClient.getDuelStats(id);
-    const tournamentStats = await this.gameServiceClient.getTournamentStats(id);
+    const [duelStats, tournamentStats] = await Promise.all([
+      this.gameServiceClient.getDuelStats(id),
+      this.gameServiceClient.getTournamentStats(id),
+    ]);
 
     return {
       status: STATUS.SUCCESS,
